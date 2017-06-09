@@ -6,10 +6,6 @@ Useful shell for work
  **@usage**: _logp [packageNameString]_<br>
  **@param**: _packageNameString_ logp will find the applications which packageName contains the parameter<br>
 
-<br>
-<br>
-## Linux
-
 ## Android
 
 ## Windows
