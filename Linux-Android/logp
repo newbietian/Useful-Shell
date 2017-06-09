@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#define constants
+PID_INDEX=1
+PROCESS_INDEX=8
+
+# verify the parameter's correctness
+if [ -z "$1" ]
+then
+    echo -e "\033[31m Usage: logp [packageName] \033[0m"
+    exit
+fi
+
+# get all processes that meets the parameter and replace the 'space' with '|'.
+processes=`/opt/bin/adb shell ps | sed 's/ \{1,\}/|/g' | grep $1`
+
+# loop the $processes and echo each value.
+counter=0
+for tmp in ${processes[@]}
+do
+    IFS="|"
+    arr=($tmp)
+    pid_number=${arr[$PID_INDEX]}
+    process_name=${arr[$PROCESS_INDEX]}
+    
+    let index=counter+1;
+    printf "%3d] %10d]  %s\n" $index $pid_number $process_name | grep --color=auto -E "$1|$pid_number"
+    
+    #record pids
+    pid_array[$counter]=$pid_number
+    
+    let counter+=1
+done
+
+# read index from terminal line
+index_input=0
+
+if [ $counter -gt 1 ]
+then
+    printf "\n"
+    read -p "Input index to choose process you want : " index_input
+    # do error input judgement
+    # TODO
+
+    let index_input=index_input-1
+fi
+
+
+# get final pid you want
+pid_number=${pid_array[$index_input]}
+
+# logcat the process log
+/opt/bin/adb logcat | grep --color=auto $pid_number
+
+
+
+
+
