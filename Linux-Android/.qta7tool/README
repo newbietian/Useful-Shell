@@ -8,6 +8,7 @@ Linux-Qt-A7环境套件搭建
 
     PS:生成的配置文件在/home/xx/.qta7tool.cfg
 
-二、QtCreator构建Kit配置
+二、gen/shellpackage.sh 使用
+usage: ./shellpackage.sh -p 打包生成的可执行文件名 -s 运行的第一个脚本 files...(可以是文件夹/*)
 
 
