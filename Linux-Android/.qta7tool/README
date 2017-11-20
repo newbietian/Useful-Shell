@@ -1,0 +1,13 @@
+Linux-Qt-A7环境套件搭建
+
+一、快速启动及环境变量设置
+1、将QtA7EnvConfig放在项目根目录下运行
+   sudo ./QtA7EnvConfig
+2、在ubuntu最左上角的Dash中搜索QtA7
+3、拖至启动器，即可一键启动
+
+    PS:生成的配置文件在/home/xx/.qta7tool.cfg
+
+二、QtCreator构建Kit配置
+
+
