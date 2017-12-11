@@ -10,5 +10,6 @@ Useful shell for work
 **@usage**: See README file in .qta7tool directory<br>
 
 ## Android
+[1、Android Log Analysis](https://github.com/Bravest-Ptt/Useful-Shell/tree/master/Android/parser)
 
 ## Windows
