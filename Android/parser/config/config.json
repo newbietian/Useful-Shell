@@ -1,0 +1,29 @@
+{
+  "module":[
+    {
+      "name": "Crash",
+      "not_matched": 1,
+      "entry": "FATAL EXCEPTION:",
+      "rules": {
+        "app": "Process:",
+        "reason": "Caused by:",
+        "*line_start": "at"
+      }
+    },
+    {
+      "name": "NativeCrash",
+      "entry": "Fatal signal",
+      "not_matched": 1,
+      "rules": {
+        "*phone_info": "Build fingerprint: ",
+        "*revision": "Revision: ",
+        "*abi": "ABI: ",
+        "pid_name": "pid: ",
+        "signal": "signal",
+        "abort_message": "Abort message: ",
+        "backtrace": "backtrace:",
+        "*end": "FORTIFY: "
+      }
+    }
+  ]
+}
