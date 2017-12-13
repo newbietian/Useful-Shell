@@ -5,6 +5,7 @@ import time
 import os
 from multiprocessing import Process
 from webserver import PythonWebServer
+from images import images as image
 
 USE_GENERIC = 0
 
@@ -71,16 +72,11 @@ class Application(wx.App):
 class SplashScreen(wx.SplashScreen):
     global __sWebProcess
     def __init__(self):
-        bmp = wx.Image(opj("images/splash.bmp")).ConvertToBitmap()
-        wx.SplashScreen.__init__(self, bmp,
+        wx.SplashScreen.__init__(self, image.splash.GetBitmap(),
                                  wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
                                  5000, None, -1)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.fc = wx.FutureCall(2000, self.ShowMain)
-
-        StaticText(
-            self, -1, "Is this yellow?", (20, 70), (120, -1)
-            ).SetBackgroundColour('Yellow')
 
         # register service callback
         asyncStartWebServer(self.__onWebServerStarted, self.__onWebServerStopped)

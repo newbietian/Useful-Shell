@@ -3,6 +3,7 @@ import wx
 import wx.lib.buttons as buttons
 import lang.lang
 import os
+import images.images as image
 
 def getHomePath():
     if os.environ['HOME']:
@@ -13,16 +14,16 @@ def getHomePath():
         return os.path.expanduser('~')
 
 class AppStatusBar(wx.StatusBar):
-    __info__= {
-        "info": "images/info.png",
-        "success": "images/success.png",
-        "error": "images/error.png"
-    }
     __Target_Field=1
 
     def __init__(self, parent, level='info', str=''):
         wx.StatusBar.__init__(self, parent, -1)
 
+        self.__info__= {
+            "info": image.info.GetBitmap(),
+            "success": image.success.GetBitmap(),
+            "error": image.error.GetBitmap()
+        }
         self.state = level
         self.parent = parent
         self.string = str
@@ -44,7 +45,7 @@ class AppStatusBar(wx.StatusBar):
 
     def SetLevel(self, level):
         self.state = level
-        image = wx.Bitmap(self.__getStateImage(), wx.BITMAP_TYPE_PNG)
+        image = self.__getStateImage()
         #self.stateIcon = wx.BitmapButton(self, -1, image ,(image.GetWidth(), image.GetHeight()))
         self.stateIcon = wx.StaticBitmap(self, -1, image)
         self.__Reposition()
@@ -121,11 +122,11 @@ class AppToolBar(wx.ToolBar):
         bm_help = wx.ArtProvider.GetBitmap(wx.ART_HELP, wx.ART_TOOLBAR, tsize)
         self.SetToolBitmapSize(tsize)
 
-        bm_new = wx.Bitmap("images/new.png", wx.BITMAP_TYPE_PNG)
+        bm_new = image.new.GetBitmap()
         self.AddLabelTool(self.TOOL_NEW, "New", bm_new, shortHelp="新增任务", longHelp="在任务列表中新增任务")
         self.AddSeparator()
 
-        bm_history = wx.Bitmap("images/clean_history.png", wx.BITMAP_TYPE_PNG)
+        bm_history = image.clean_history.GetBitmap()
         self.AddLabelTool(self.TOOL_CLEAN, "Clean", bm_history, shortHelp="删除历史", longHelp="删除列表中的历史记录")
         self.AddSeparator()
 
@@ -475,6 +476,7 @@ if __name__ == '__main__':
     #启动画面
     #登录对话框
     #主框架
+    print os.getcwd()
     frame=newframe()
     frame.Show()
     newapp.MainLoop()
