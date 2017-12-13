@@ -1,6 +1,11 @@
 import wx
 
 class MyFrame(wx.Frame):
+    __info__= {
+        "info": "images/info.png",
+        "success": "images/success.png",
+        "error": "images/error.png"
+    }
     def __init__(self, parent, ID, title):
         wx.Frame.__init__(self, parent, ID, title, (-1, -1), wx.Size(250,50))
         panel=wx.Panel(self, -1)
@@ -10,6 +15,7 @@ class MyFrame(wx.Frame):
         box.Add(wx.Button(panel, -1, 'Button2'), 1)
         box.Add(wx.Button(panel, -1, 'Button3'), 1)
 
+        print self.__info__["info"]
         panel.SetSizer(box)
         self.Centre()
 
