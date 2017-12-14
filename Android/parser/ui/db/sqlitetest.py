@@ -17,9 +17,9 @@ cu = cx.cursor()
 cu.execute('CREATE TABLE IF NOT EXISTS catalog (id integer PRIMARY KEY AUTOINCREMENT, pid integer, name varchar(10) UNIQUE)')
 
 #insert
-#cu.execute("INSERT INTO catalog (pid, name) VALUES (0,'name1')")
+cu.execute("INSERT INTO catalog (pid, name) VALUES (0,'name4')")
 #cu.execute("INSERT INTO catalog (pid, name) VALUES (1,'name2')")
-#cx.commit()
+cx.commit()
 
 #select
 #cu.execute("select * from catalog")
@@ -30,8 +30,9 @@ cu.execute('CREATE TABLE IF NOT EXISTS catalog (id integer PRIMARY KEY AUTOINCRE
 # cx.commit()
 
 #delete
-cu.execute("delete from catalog where id = 1")
-cx.commit()
+# cu.execute("delete from catalog where id = 1")
+# cx.commit()
+# cx.close()
 
 #http://www.runoob.com/sqlite/sqlite-insert.html
 #sqlite3 study

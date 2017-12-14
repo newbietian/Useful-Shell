@@ -7,13 +7,18 @@ class Task(object):
     __STATE_PROCESS__=2
     __STATE_DONE__=3
 
-    def __init__(self,create_time='',log_path='',src_path=''):
-        self.state=self.__STATE_NEW__
+    def __init__(self, name, state, log_path, src_path, create_time='', finish_seconds=0):
+        self.state=state
 
         # t = time.localtime(time.time())
         # self.create_time = time.strftime("%d-%b-%Y   %I:%M:%S", t)
-        self.create_time = create_time
+
+        self.name = name
         self.log_path = log_path
         self.src_path = src_path
-        self.finish_seconds=0
+        self.create_time = create_time
+        self.finish_seconds = finish_seconds
+
+if __name__=="__main__":
+    print Task.__dict__
 

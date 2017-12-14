@@ -1,7 +1,6 @@
 # coding=utf-8
 import re
-from parser.crash.crash import *
-from parser.tool import const
+from crash.crash import *
 
 class JavaCrashParser(object):
 
@@ -80,7 +79,7 @@ class JavaCrashParser(object):
             m = re.match(self.PAT_ANDROID_RUNTIME, self.start_line)
             if m:
                 header_len = len(m.group(1))
-                echo("header_len = {0}".format(header_len))
+                #echo("header_len = {0}".format(header_len))
 
             line = "#"
 
@@ -90,7 +89,7 @@ class JavaCrashParser(object):
 
                 # 去除time + (pid) + tag, 保留其中的有用内容
                 line = line[header_len:]
-                print line
+                #print line
 
                 package_matcher = re.match(self.PAT_NAME_PACKAGE, line)
                 if package_matcher:

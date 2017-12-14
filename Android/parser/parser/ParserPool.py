@@ -1,7 +1,6 @@
 # coding=utf-8
 import multiprocessing
-
-from parser.parser.Parser import *
+from parser.Parser import *
 
 
 class ParserPool(object):

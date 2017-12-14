@@ -1,17 +1,8 @@
 #-*- coding=utf-8 -*-
 import wx
-import wx.lib.buttons as buttons
-import lang.lang
 import os
 import images.images as image
-
-def getHomePath():
-    if os.environ['HOME']:
-        return os.environ['HOME']
-    if os.path.expandvars('$HOME'):
-        return os.path.expandvars('$HOME')
-    if os.path.expanduser('~'):
-        return os.path.expanduser('~')
+from tool import tools as tool
 
 class AppStatusBar(wx.StatusBar):
     __Target_Field=1
@@ -311,7 +302,7 @@ class AppNewTaskDialog(wx.Dialog):
             # dialog is set up to change the current working directory to the path chosen.
             dlg = wx.FileDialog(
                 self, message=message,
-                defaultDir=getHomePath(),
+                defaultDir=tool.getHomePath(),
                 defaultFile="",
                 wildcard=self.__WILDCARD,
                 style=wx.OPEN | wx.CHANGE_DIR # | wx.MULTIPLE

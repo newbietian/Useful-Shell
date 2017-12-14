@@ -1,7 +1,7 @@
-# coding=utf-8
+# coding=utf-8parser
 import json
 
-from parser.tool.StringPattern import *
+from tool.StringPattern import *
 
 
 class Parser(object):

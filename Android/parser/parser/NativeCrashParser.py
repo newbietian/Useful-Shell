@@ -1,7 +1,6 @@
 # coding=utf-8
 import re
 
-
 class NativeCrashParser(object):
 
     __ENTRY__ = "Fatal signal"
