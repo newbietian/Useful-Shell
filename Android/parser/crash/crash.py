@@ -1,35 +1,8 @@
-class Time(object):
-    def __init__(self, MON, DAY, H, M, S, U, string):
-        self.MON = MON
-        self.DAY = DAY
-        self.H = H
-        self.M = M
-        self.S = S
-        self.U = U
-        self.string = string
+# coding=utf-8
+import time
+import tool.tools as tool
+import re
 
-    def is_older_than(self, other):
-        if other: pass
-        else: return True
-
-        if type(other) is not Time:
-            print "TIME: is_older_than: error, other is not Type Time"
-            return False
-        if self.MON > other.MON: return True
-        elif self.MON < other.MON: return False
-        elif self.DAY > other.DAY: return True
-        elif self.DAY < other.DAY: return False
-        elif self.H > other.H: return True
-        elif self.H < other.H: return False
-        elif self.M > other.M: return True
-        elif self.M < other.M: return False
-        elif self.S > other.S: return True
-        elif self.S < other.S: return False
-        elif self.U > other.U: return True
-        else: return False
-
-    def __str__(self):
-        return self.string
 
 class LLocation(object):
     def __init__(self, log_file_path='', found_line=0):
@@ -38,6 +11,13 @@ class LLocation(object):
 
     def __str__(self):
         return "<LLocation>" + "<" + str(hex(self.__hash__())) + ">" + str(self.__dict__)
+
+    def __eq__(self, other):
+        if type(other) is not LLocation:
+            return False
+        if self.log_file_path=='' or \
+            other.log_file_path=='': return False
+        return self.log_file_path == other.log_file_path and self.found_line == other.found_line
 
 
 class SLocation(object):
@@ -57,13 +37,15 @@ class Crash(object):
         self.location_in_log = None
         self.occurred_time = None
         self.stack_trace = []
+        self.duplicate=None
 
     def __str__(self):
         s =   "--|--" + "name_package = " + self.name_package + "\n"\
             + "  |--" + "reason = " + self.reason + "\n" \
             + "  |--" + "p_t_id = " + bytes(self.p_t_id) + "\n" \
             + "  |--" + "occurred_time = " + self.occurred_time.__str__() + "\n" \
-            + "  |--" + "location_in_log = " + self.location_in_log.__str__() + "\n"
+            + "  |--" + "location_in_log = " + self.location_in_log.__str__() + "\n" \
+            + "  |--" + "duplicate = " + self.duplicate.__str__() + "\n"
         if len(self.stack_trace) > 0:
             s += "  |--" + "stack_trace[0] = " + self.stack_trace[0] + "\n"
         return s
@@ -104,3 +86,19 @@ class NativeCrash(Crash):
         s = super(NativeCrash, self).__str__()
         s += "  |--" + "error_signal = " + str(self.error_signal)
         return s
+
+if __name__ == '__main__':
+    a = JavaCrash()
+    a.name_package = "a"
+    a.reason = "a"
+
+    b = JavaCrash()
+    b.name_package = "a"
+    b.reason="a"
+    #print a
+    #print b
+    ab = []
+    ab.append(a)
+    print  cmp(a, b)
+    if b in ab:
+        print "equal"

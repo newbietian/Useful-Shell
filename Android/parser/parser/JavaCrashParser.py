@@ -1,6 +1,7 @@
 # coding=utf-8
 import re
 from crash.crash import *
+from tool.tools import Time
 
 class JavaCrashParser(object):
 
@@ -40,14 +41,7 @@ class JavaCrashParser(object):
 
     # get occurred time
     # "05-10 02:06:16.628 I/NetworkIdentity( 2603): buildNetworkIdentity:"
-    # group1 = time
-    # group2 = mon
-    # group3 = day
-    # group4 = h
-    # group5 = m
-    # group6 = h
-    # group7 = u
-    PAT_TIME = r"^((\d\d)-(\d\d)\s(\d\d):(\d\d):(\d\d)\.(\d\d\d))"
+    PAT_TIME = r"^(\d\d-\d\d\s\d\d:\d\d:\d\d\.\d\d\d)"
 
     # 支持一下三种格式的log
     #     "08-18 16:52:54.902  5672  5672 E AndroidRuntime: 	at android.app.FragmentManagerImpl.moveToState(FragmentManager.java:1148)"
@@ -66,11 +60,12 @@ class JavaCrashParser(object):
 
     def parse(self):
         try:
+            self.result.location_in_log = LLocation(self.logfp.name, self.logfp.line_num)
+
             # get time
             m = re.match(self.PAT_TIME, self.start_line)
             if m:
-                self.result.occurred_time = Time(int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)),
-                                                 int(m.group(6)), int(m.group(7)), m.group(1))
+                self.result.occurred_time = Time(m.group(1))
             else:
                 echo("occurred time is None")
 
@@ -136,7 +131,7 @@ class JavaCrashParser(object):
 
                 if not package_matcher and not reason_matcher and not caused_matcher and not at_line_matcher:
                     # TODO
-                    self.logfp.seek(-(len(line) + header_len), 1)
+                    self.logfp.rollbackline(-(len(line) + header_len))
                     break
         except Exception as e:
             echo("@@@@@@@@@@@ has Exception : " + e.message)

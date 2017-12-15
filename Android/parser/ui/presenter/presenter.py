@@ -103,7 +103,7 @@ if __name__ == '__main__':
     from tool import tools as tool
     import re
     ttt = "2017-12-14 16:09:04"
-    print tool.str2secs(ttt)
+    print tool.str2msecs(ttt)
 
     #addSelectedListener(a)
     selectALLTask()
