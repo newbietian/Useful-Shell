@@ -40,7 +40,7 @@ def asyncStartWebServer(start_callback, stop_callback):
     __sWebProcess.daemon = True
     __sWebProcess.start()
 
-def __asyncStartWebServer(start_callback, stop_callback):
+def __asyncStartWebServer(start_callback=None, stop_callback=None):
     PythonWebServer.addServerStartListener(start_callback)
     PythonWebServer.addServerStopedListener(stop_callback)
     PythonWebServer.startServer()
@@ -81,9 +81,11 @@ class SplashScreen(wx.SplashScreen):
         # register service callback
         asyncStartWebServer(self.__onWebServerStarted, self.__onWebServerStopped)
 
+    # TODO TypeError: can't pickle PySwigObject objects in windows
     def __onWebServerStarted(self):
         print "Server Started"
 
+    # TODO TypeError: can't pickle PySwigObject objects in windows
     def __onWebServerStopped(self, reason):
         global __sWebProcess
         print "Server stopped: ", reason
