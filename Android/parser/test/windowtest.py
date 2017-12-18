@@ -1,7 +1,8 @@
 # coding=utf-8
-import wx
 import os
-from ui.spliterwindowtest import newframe
+import wx
+
+from ui.test.spliterwindowtest import newframe
 
 if __name__ == '__main__':
     newapp=wx.App(False)

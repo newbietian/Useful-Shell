@@ -5,63 +5,68 @@ from ui.db import sqliteHelper as dbHelper
 
 # DB
 # ---------------------
-def insertTask(task):
+def InsertTask(task):
     sql = "INSERT INTO history (name, state, log_path, src_path) VALUES (?, ?, ?, ?)"
     args=(task.name, task.state, task.log_path, task.src_path)
     dbHelper.insert(sql, args)
 
 # ---------------------
-def deleteAll():
+def DeleteAll():
     sql = "DELETE FROM history"
     dbHelper.delete(sql)
 
-def deleteOne(name):
+def DeleteOne(name):
     sql = "DELETE FROM history WHERE name = ?"
     args = (name, )
     dbHelper.delete(sql, args)
 
 # ---------------------
-def updateTaskName(old_name, new_name):
+def UpdateTaskName(old_name, new_name):
     sql = "UPDATE history SET name = ? WHERE name = ?"
     args = (new_name, old_name)
     dbHelper.update(sql, args)
 
-def updateTaskResultPath(name, path):
+def UpdateTaskResultPath(name, path):
     sql = "UPDATE history SET result_path = ? WHERE name = ?"
     args = (path, name)
     dbHelper.update(sql, args)
 
+def UpdateTaskState(name, new_state):
+    sql = "UPDATE history SET state = ? WHERE name = ?"
+    args = (new_state, name)
+    dbHelper.update(sql, args)
+
 # ---------------------
-def selectALLTask():
+def SelectALLTask():
     sql = "SELECT * FROM history"
     return dbHelper.select(sql)
 
-def selectProcessingTask():
+def SelectProcessingTask():
     sql = "SELECT * FROM history WHERE state = ?"
     args = (Task.__STATE_PROCESSING__, )
     return dbHelper.select(sql, args)
 
-def selectWaitingTask():
+def SelectWaitingTask():
     sql = "SELECT * FROM history WHERE state = ?"
     args = (Task.__STATE_WAITING__, )
     return dbHelper.select(sql, args)
 
-def selectDoneTask():
+def SelectDoneTask():
     sql = "SELECT * FROM history WHERE state = ?"
     args = (Task.__STATE_DONE__, )
     return dbHelper.select(sql, args)
 
 # ---------------------
-def addInsertedListener(callback):
+def AddInsertedListener(callback):
     dbHelper.addInsertedListener(callback)
 
-def addDeletedListener(callback):
+def AddDeletedListener(callback):
     dbHelper.addDeletedListener(callback)
 
 #def addSelectedListener(callback):
 #    dbHelper.addSelectedListener(callback)
 
-def addUpdatedListener(callback):
+def AddUpdatedListener(callback):
     dbHelper.addUpdatedListener(callback)
 
 # ----------------------------------------------------------------------------------------------------
@@ -74,19 +79,19 @@ if __name__ == '__main__':
 
     from task.task import Task
     task = Task("test1", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
-    insertTask(task)
+    InsertTask(task)
     task = Task("test121", Task.__STATE_NEW__, "/home/qinsw/", "/home/qinsw/heh")
-    insertTask(task)
+    InsertTask(task)
     task = Task("te131st1", Task.__STATE_DONE__, "/home/qinsw/", "/home/qinsw/heh")
-    insertTask(task)
+    InsertTask(task)
     task = Task("test1411", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
-    insertTask(task)
+    InsertTask(task)
     task = Task("tes51t1", Task.__STATE_WAIT__, "/home/qinsw/", "/home/qinsw/heh")
-    insertTask(task)
+    InsertTask(task)
     task = Task("test5151", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
-    insertTask(task)
+    InsertTask(task)
     task = Task("tafaest1411", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
-    insertTask(task)
+    InsertTask(task)
 
 
     #addDeletedListener(a)
@@ -105,7 +110,7 @@ if __name__ == '__main__':
     print tool.str2msecs(ttt)
 
     #addSelectedListener(a)
-    selectALLTask()
-    selectProcessingTask()
-    selectWaitingTask()
-    selectDoneTask()
+    SelectALLTask()
+    SelectProcessingTask()
+    SelectWaitingTask()
+    SelectDoneTask()

@@ -1,7 +1,7 @@
 #-*- coding=utf-8 -*-
 import wx
 import os
-import images.images as image
+import ui.images.images as image
 from tool import tools as tool
 
 class AppStatusBar(wx.StatusBar):

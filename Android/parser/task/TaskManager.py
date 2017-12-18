@@ -1,8 +1,10 @@
 # coding=utf-8
-from task import Task
-import Queue
 import threading
+import time
+import tool.tools as tool
+from task import Task
 from parser import ParserManager
+from ui.presenter import presenter as Presenter
 
 class TaskQueue(object):
     def __init__(self):
@@ -11,8 +13,8 @@ class TaskQueue(object):
     def put(self, t):
         self._queue.insert(0, t)
 
-    def getHeader(self):
-        return self._queue[len(self._queue)-1]
+    def getHeaderLoad(self):
+        return self._queue[len(self._queue)-1].getLoad()
 
     def get(self):
         return self._queue.pop(len(self._queue)-1)
@@ -24,10 +26,11 @@ class ProcessingTaskQueue(TaskQueue):
     def __init__(self):
         super(ProcessingTaskQueue, self).__init__()
 
-    def loadSum(self):
+    def getLoadSum(self):
         load_sum = 0
         for t in self._queue:
-            load_sum+=t
+            load_sum+=t.getLoad()
+        tool.log("loadsum", "load_sum = %d" % load_sum)
         return load_sum
 
     def put(self, t):
@@ -36,6 +39,8 @@ class ProcessingTaskQueue(TaskQueue):
         super(ProcessingTaskQueue, self).put(t)
 
         # TODO 数据库操作，更新task的状态 => Processing
+        Presenter.UpdateTaskState(t.name, Task.__STATE_PROCESSING__)
+
         # TODO 启动线程池执行任务
         pm = ParserManager(t, )
 
@@ -49,6 +54,7 @@ class WaitingTaskQueue(TaskQueue):
         super(WaitingTaskQueue, self).put(t)
 
         #TODO 数据库操作，更新task的状态 => Waiting
+        Presenter.UpdateTaskState(t.name, Task.__STATE_WAITING__)
 
 
 class TaskManager(object):
@@ -58,7 +64,9 @@ class TaskManager(object):
     #    如果是，则waiting
     #    如果否， 则进入processing queue
     # 3、当从ParserManager收到对应Task完成的反馈， 则在processing queue中移除此task
-    _MAX_PROCESSING = 50
+
+    #TODO 可以从配置文件中获取
+    _MAX_PROCESSING_ = 50
 
     instance=None
     _waitingQueue = None
@@ -69,8 +77,8 @@ class TaskManager(object):
     def __new__(cls, *args, **kwargs):
         if not cls.instance:
             cls.instance = super(TaskManager, cls).__new__(cls, *args, **kwargs)
-            cls._waitingQueue = ProcessingTaskQueue()
-            cls._processingQueue = WaitingTaskQueue()
+            cls._waitingQueue = WaitingTaskQueue()
+            cls._processingQueue = ProcessingTaskQueue()
             # TODO
             cls._task_handler = threading.Thread(target=cls._handle_tasks)
             cls._task_handler.start()
@@ -84,10 +92,21 @@ class TaskManager(object):
         while self._running:
             # calculate current work num
             if self._processingQueue.size() > 0:
-                pass
+                #TODO calculate
+                current_load = self._processingQueue.getLoadSum()
+                future_load = self._waitingQueue.getHeaderLoad()
+                if current_load + future_load <= TaskManager._MAX_PROCESSING_:
+                    # put the task to _processingQueue
+                    task = self._waitingQueue.get()
+                    self._processingQueue.put(task)
+                else:
+                    tool.log("_handle_task", "please hold on")
             else:
                 task = self._waitingQueue.get()
                 self._processingQueue.put(task)
+
+            # A 0.5 second loop
+            time.sleep(0.5)
 
 
 
