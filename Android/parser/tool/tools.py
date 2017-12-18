@@ -4,6 +4,7 @@ import sys
 import wx
 import time
 import re
+import subprocess
 
 __DB_NAME__ = "app.db"
 __CONFIG_NAME__ = "app.cfg"
@@ -35,11 +36,14 @@ def checkDirExists(path):
 
 def getFileSize(path):
     if not checkFileExists(path):
-        log("checkFileExists", "File {} is not exist!".format(path))
+        log("getFileSize", "File {} is not exist!".format(path))
         return 0
     return os.path.getsize(path)
 
 def getDirSize(path):
+    if not checkDirExists(path):
+        log("getDirSize, Dir {} is not exist!".format(path))
+        return 0, 0
     count = 0
     file_count = 0
     for root, sub_dirs, files in os.walk(path):
@@ -48,6 +52,45 @@ def getDirSize(path):
             count+=getFileSize(file_path)
             file_count+=1
     return count, file_count
+
+def getDirSizeMB(path):
+    count, file_count = getDirSize(path)
+    return count >> 20, file_count
+
+def getFilesSize(list):
+    count = 0
+    for f in list:
+        count+=getFileSize(f)
+    return count
+
+def getFilesSizeMB(list):
+    return getFilesSize(list) >> 20
+
+#TODO
+# 获取当前文件夹下可解析的文件
+# 如果文件夹中文件过多，可能耗时较久
+def getParseableFileList(path):
+    list=[]
+    for root, sub_dirs, files in os.walk(path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            # 使用命令行file工具去判断此file是否是我们想要的格式，排除图片二进制或其他格式的文件
+            p = subprocess.Popen('file ' + "\"" + file_path + "\"", shell=True, stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT)
+            file_property = p.stdout.readline()
+            if file_property.find("ASCII") > 0 or file_property.find("UTF-8") > 0:
+                try:
+                    if file_path.endswith(".hex") \
+                            or file_path.endswith(".css") \
+                            or file_path.endswith(".sh") \
+                            or file_path.endswith(".json") \
+                            or file_path.endswith(".html"):
+                        continue
+                    else:
+                        list.append(file_path)
+                except Exception as e:
+                    log("getParseableFileList.error", e.message)
+    return list
 
 def str2msecs(time_str):
     """ 将字符串的时间转化为ms """
@@ -76,23 +119,12 @@ def str2msecs(time_str):
         return 0
     return int(time.mktime(tmlist)) * 1000 + int(uu)
 
-# TODO
-def getParseableFileList(path):
-    list=[]
-    for root, sub_dirs, files in os.walk(path):
-        for file in files:
-            file_path = os.path.join(root, file)
-            list.append(file_path)
-    return list
-
-
 def log(tag, message=''):
     def_tag = 'APP'
     if message == '':
         message = tag
         tag = def_tag
     print str(tag),":",str(message)
-
 
 class Preference(object):
     '''Single instance class for save Preference'''
@@ -144,3 +176,8 @@ if __name__ == "__main__":
     a = time.time()
     print str2msecs("12-12 13:51:13.413")
     print time.time()-a
+
+    from task.task import Task
+    print getDirSize("/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android")
+    print getDirSizeMB("/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android"), "MB"
+    print  getDirSizeMB("/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android")/ Task.__LOAD_UNIT__ + 1

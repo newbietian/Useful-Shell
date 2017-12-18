@@ -44,29 +44,26 @@ class Parser(object):
 
         self.log_size = float(tool.getFileSize(log_path))
 
+        # progress callback for ParserManager
         self.pg_listener = None
+        # progress level, can not > __THRESHOLD__
         self.pg_curr_level = 0
-        self.pg_unit = self.log_size / self.__THRESHOLD__
-        self.pg_levels = [self.pg_unit*(x+1) for x in range(self.__THRESHOLD__)]
-        print self.pg_levels
 
-    def set_log_path(self, path):
-        self.log_path = path
+        # progress triggers
+        t = self.log_size / self.__THRESHOLD__
+        self.pg_levels = [t*(x+1) for x in range(self.__THRESHOLD__)]
 
     def set_progress_listener(self ,listener):
         self.pg_listener = listener
 
     def parse(self):
         # 打开log文件
-        #logfp = open(self.log_path, 'r')
         logfp=LineReader(self.log_path, 'r')
 
         # 所有模块的结果
-        all_module_results = {
-            __M_JAVA__:[],
-            __M_NATIVE__:[],
-            __M_ANR__:[]
-        }
+        all_module_results = {}
+        for m in self.modules:
+            all_module_results[m] = []
 
         line = '#'
         #count = 0

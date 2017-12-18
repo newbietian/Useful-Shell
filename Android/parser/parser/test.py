@@ -73,14 +73,21 @@
 from parser.ParserManager import ParserManager
 from parser.Parser import __M_JAVA__,__M_NATIVE__,__M_ANR__
 import tool.tools as tool
+import multiprocessing
 
 def progress_callback(progress):
-    print "progress = ", progress
+    print "progress = ", progress, "pid = " , multiprocessing.current_process().pid
+    if progress >= 1:
+        print "Task Done"
 
 if __name__ == "__main__":
-    path = "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android"
+    path = "/home/qinsw/pengtian/tmp/cmcc_monkey/"
     list = tool.getParseableFileList(path)
 
     print list
+    print "pid = = = = = " , multiprocessing.current_process().pid
     pm = ParserManager(4,list,(__M_JAVA__,),progress_callback)
     pm.execute()
+
+    import time
+    #time.sleep(10)

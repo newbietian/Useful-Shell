@@ -334,21 +334,21 @@ class newframe(wx.Frame):
 
     #主体窗口
     def mainWindow(self):
-        self.mw=wx.SplitterWindow(self,style=wx.SP_NOSASH|wx.SP_NOBORDER)
-        self.panel1=wx.Panel(self.mw,-1,style=wx.SUNKEN_BORDER)
+        #self.mw=wx.SplitterWindow(self,style=wx.SP_NOSASH|wx.SP_NOBORDER)
+        #self.panel1=wx.Panel(self.mw,-1,style=wx.SUNKEN_BORDER)
         #self.panel1.SetBackgroundColour('#5bb686')
 
-        self.finished_sp = wx.SplitterWindow(self.mw, style=wx.SP_LIVE_UPDATE)
+        self.finished_sp = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
         self.finished_sp_p1 = wx.Panel(self.finished_sp, -1, style=wx.SUNKEN_BORDER)
         self.finished_sp_p2 =wx.Panel(self.finished_sp, -1, style=wx.SUNKEN_BORDER)
         #self.finished_sp_p1.SetBackgroundColour('#5bb686')
         #self.finished_sp_p2.SetBackgroundColour('#5bb686')
 
-        self.finished_sp.SplitHorizontally(self.finished_sp_p1, self.finished_sp_p2, 300)
-        self.finished_sp.SetMinimumPaneSize(200)
+        self.finished_sp.SplitHorizontally(self.finished_sp_p1, self.finished_sp_p2, 200)
+        self.finished_sp.SetMinimumPaneSize(30)
 
-        self.mw.SplitVertically(self.panel1,self.finished_sp,300)
-        self.mw.SetMinimumPaneSize(300)
+        #self.mw.SplitVertically(self.panel1,self.finished_sp,300)
+        #self.mw.SetMinimumPaneSize(300)
 
         #newTask = wx.Bitmap("images/new.png", wx.BITMAP_TYPE_PNG)
         #self.chooseLogButton = wx.BitmapButton(self.panel1,10,newTask,

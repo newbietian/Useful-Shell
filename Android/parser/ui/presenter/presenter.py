@@ -1,5 +1,4 @@
 #-*- coding=utf-8 -*-
-import os
 from ui.db import sqliteHelper as dbHelper
 
 # connect View and Model
@@ -39,12 +38,12 @@ def selectALLTask():
 
 def selectProcessingTask():
     sql = "SELECT * FROM history WHERE state = ?"
-    args = (Task.__STATE_PROCESS__, )
+    args = (Task.__STATE_PROCESSING__, )
     return dbHelper.select(sql, args)
 
 def selectWaitingTask():
     sql = "SELECT * FROM history WHERE state = ?"
-    args = (Task.__STATE_WAIT__, )
+    args = (Task.__STATE_WAITING__, )
     return dbHelper.select(sql, args)
 
 def selectDoneTask():
@@ -73,7 +72,7 @@ if __name__ == '__main__':
         print r
     #addInsertedListener(a)
 
-    from ui.entity.task import Task
+    from task.task import Task
     task = Task("test1", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
     insertTask(task)
     task = Task("test121", Task.__STATE_NEW__, "/home/qinsw/", "/home/qinsw/heh")
@@ -101,7 +100,7 @@ if __name__ == '__main__':
     #updateTaskResultPath("new_test1", "/home/hello")
 
     from tool import tools as tool
-    import re
+
     ttt = "2017-12-14 16:09:04"
     print tool.str2msecs(ttt)
 

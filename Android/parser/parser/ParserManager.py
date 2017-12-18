@@ -5,10 +5,12 @@ import tool.tools as tool
 import os
 
 class ParserManager(object):
+
     '''
         Single Instance
     '''
 
+    _pool = None
     def __init__(self, parsers, file_path_list, modules=(), pg_callback=None):
         '''
         :param parsers: the number of the pool processes
@@ -21,50 +23,71 @@ class ParserManager(object):
         self.file_path_list = file_path_list
         self.modules = modules
 
-        self._pg_dict = multiprocessing.Manager().dict()
-        self._final_result = multiprocessing.Manager().dict()
-        self._file_count = len(self.file_path_list)
+        self._progress_dict_ = multiprocessing.Manager().dict()
 
-    def __del__(self):
-        self._pool.close()
+        # init result structure
+        self._result_ = multiprocessing.Manager().dict()
+        for m in self.modules:
+            self._result_[m] = []
 
     def execute(self):
         '''Do job entry'''
+        print multiprocessing.current_process().pid
         for file_path in self.file_path_list:
             # start a process and do job
             self._pool.apply_async(proxy, (self, file_path, self.modules), callback=self.__callback)
+        self._pool.close()
 
-    def __run__(self, log_path, module):
+    def __run__(self, log_path, modules):
         """
         start a process and do job
         :param log_path: the log to parse
-        :param module: the modules we care
+        :param modules: the modules we care
         :return: the parse result we get
         """
+        print multiprocessing.current_process().pid
         tool.log("__start_one_parser", log_path)
-        parser = Parser(log_path, module)
-        result = parser.parse()
-        result["result_path"]=log_path
-        return result
+        parser = Parser(log_path, modules)
+        parser.set_progress_listener(self.__progressCallback__)
+        return parser.parse()
 
-    def __progressCallback(self, path, pg_dict, percent):
+    def __getstate__(self):
+        '''
+        'pool objects cannot be passed between processes or pickled'
+         NotImplementedError: pool objects cannot be passed between processes or pickled
+        '''
+        self_dict = self.__dict__.copy()
+        del self_dict['_pool']
+        return self_dict
+
+    # Run in different process
+    def __progressCallback__(self, path, percent):
         # calculate current progress
-        pg_dict[path] = percent
-        sum_values = sum(pg_dict.values())
-        sum_percent = float(sum_values) / self._file_count
-        print "sum percent = ", sum_percent
+        self._progress_dict_[path] = percent
+        progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
 
         # send progress to task manager
-        self.pg_callback(sum_percent)
-        #if sum_percent >=  self._file_count:
+        if self.pg_callback: self.pg_callback(progress)
 
-    #TODO 在这儿做外部去重
+    # TODO 在这儿做外部去重
+    # 此处是各进程调用回调返回参数处， 运行在主进程中
     def __callback(self, result):
-        ''''''
-        print result
+        '''
+        The result callback of parser
+        :param result: from parser
+        '''
+        print "before:", self._result_
+        for m in self.modules:
+            if len(result[m]) > 0:
+                self._result_[m]+=result[m]
+        print "after:", self._result_
 
-    def close(self):
-        return self._pool.close()
+        print multiprocessing.current_process().pid
+        progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
+        print "self._progress_ = ", progress
+        if progress >= 1.0:
+            print "Should remove duplicate result"
+            print "Start thread to generate result"
 
 def proxy(cls_instance, log, modules):
     return cls_instance.__run__(log, modules)
