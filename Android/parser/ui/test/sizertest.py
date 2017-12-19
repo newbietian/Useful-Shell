@@ -2,9 +2,9 @@ import wx
 
 class MyFrame(wx.Frame):
     __info__= {
-        "info": "images/info.png",
-        "success": "images/success.png",
-        "error": "images/error.png"
+        "info": "images/web_service_info.png",
+        "success": "images/web_service_success.png",
+        "error": "images/web_service_error.png"
     }
     def __init__(self, parent, ID, title):
         wx.Frame.__init__(self, parent, ID, title, (-1, -1), wx.Size(250,50))

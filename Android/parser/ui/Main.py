@@ -72,7 +72,7 @@ class Application(wx.App):
 class SplashScreen(wx.SplashScreen):
     global __sWebProcess
     def __init__(self):
-        wx.SplashScreen.__init__(self, image.splash.GetBitmap(),
+        wx.SplashScreen.__init__(self, image.app_splash.GetBitmap(),
                                  wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
                                  5000, None, -1)
         self.Bind(wx.EVT_CLOSE, self.OnClose)

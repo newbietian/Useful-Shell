@@ -81,13 +81,14 @@ def progress_callback(progress):
         print "Task Done"
 
 if __name__ == "__main__":
-    path = "/home/qinsw/pengtian/tmp/cmcc_monkey/"
+    path = "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android"
     list = tool.getParseableFileList(path)
 
     print list
     print "pid = = = = = " , multiprocessing.current_process().pid
-    pm = ParserManager(4,list,(__M_JAVA__,),progress_callback)
+    pm = ParserManager(4,list,(__M_JAVA__,))
+    pm.setProgressCallback(progress_callback)
     pm.execute()
 
     import time
-    #time.sleep(10)
+    time.sleep(15)

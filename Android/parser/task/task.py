@@ -35,6 +35,7 @@ class Task(object):
         return self.name == other.name
 
     def getLoad(self):
+        return 10
         if not self.load:
             # TODO 1 需要去除文件夹中不需要解析的文件，再求合
             # TODO 2 self.load = min(load_cal, files_count)

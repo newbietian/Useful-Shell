@@ -1,6 +1,9 @@
 #-*- coding=utf-8 -*-
 import wx
+import wx.lib.mixins.listctrl as listmix
+
 import os
+import sys
 import ui.images.images as image
 from tool import tools as tool
 
@@ -11,9 +14,9 @@ class AppStatusBar(wx.StatusBar):
         wx.StatusBar.__init__(self, parent, -1)
 
         self.__info__= {
-            "info": image.info.GetBitmap(),
-            "success": image.success.GetBitmap(),
-            "error": image.error.GetBitmap()
+            "info": image.web_service_info.GetBitmap(),
+            "success": image.web_service_success.GetBitmap(),
+            "error": image.web_service_error.GetBitmap()
         }
         self.state = level
         self.parent = parent
@@ -93,6 +96,7 @@ class AppShowWindow(wx.SplitterWindow):
         wx.SplitterWindow.__init__(self, parent, ID, style=wx.SP_LIVE_UPDATE)
 
 
+# ------------------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------------------
 
@@ -113,11 +117,11 @@ class AppToolBar(wx.ToolBar):
         bm_help = wx.ArtProvider.GetBitmap(wx.ART_HELP, wx.ART_TOOLBAR, tsize)
         self.SetToolBitmapSize(tsize)
 
-        bm_new = image.new.GetBitmap()
+        bm_new = image.action_new.GetBitmap()
         self.AddLabelTool(self.TOOL_NEW, "New", bm_new, shortHelp="新增任务", longHelp="在任务列表中新增任务")
         self.AddSeparator()
 
-        bm_history = image.clean_history.GetBitmap()
+        bm_history = image.action_clean_history.GetBitmap()
         self.AddLabelTool(self.TOOL_CLEAN, "Clean", bm_history, shortHelp="删除历史", longHelp="删除列表中的历史记录")
         self.AddSeparator()
 
@@ -347,10 +351,12 @@ class newframe(wx.Frame):
         self.finished_sp.SplitHorizontally(self.finished_sp_p1, self.finished_sp_p2, 200)
         self.finished_sp.SetMinimumPaneSize(30)
 
+        #TestListCtrlPanel(self.finished_sp_p1)
+
         #self.mw.SplitVertically(self.panel1,self.finished_sp,300)
         #self.mw.SetMinimumPaneSize(300)
 
-        #newTask = wx.Bitmap("images/new.png", wx.BITMAP_TYPE_PNG)
+        #newTask = wx.Bitmap("images/action_new.png", wx.BITMAP_TYPE_PNG)
         #self.chooseLogButton = wx.BitmapButton(self.panel1,10,newTask,
         #                                 pos=(100, 150),size=(150,150))
 

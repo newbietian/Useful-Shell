@@ -1,10 +1,12 @@
 #-*- coding=utf-8 -*-
 from ui.db import sqliteHelper as dbHelper
+#from task.TaskManager import TaskManager
 
 # connect View and Model
 
 # DB
 # ---------------------
+
 def InsertTask(task):
     sql = "INSERT INTO history (name, state, log_path, src_path) VALUES (?, ?, ?, ?)"
     args=(task.name, task.state, task.log_path, task.src_path)
@@ -71,6 +73,12 @@ def AddUpdatedListener(callback):
 
 # ----------------------------------------------------------------------------------------------------
 
+class UIPresenter(object):
+    def __init__(self, window):
+        self.window = window
+
+
+
 
 if __name__ == '__main__':
     def a(r):
@@ -78,20 +86,20 @@ if __name__ == '__main__':
     #addInsertedListener(a)
 
     from task.task import Task
-    task = Task("test1", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
-    InsertTask(task)
-    task = Task("test121", Task.__STATE_NEW__, "/home/qinsw/", "/home/qinsw/heh")
-    InsertTask(task)
-    task = Task("te131st1", Task.__STATE_DONE__, "/home/qinsw/", "/home/qinsw/heh")
-    InsertTask(task)
-    task = Task("test1411", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
-    InsertTask(task)
-    task = Task("tes51t1", Task.__STATE_WAIT__, "/home/qinsw/", "/home/qinsw/heh")
-    InsertTask(task)
-    task = Task("test5151", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
-    InsertTask(task)
-    task = Task("tafaest1411", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
-    InsertTask(task)
+    # task = Task("test1", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
+    # InsertTask(task)
+    # task = Task("test121", Task.__STATE_NEW__, "/home/qinsw/", "/home/qinsw/heh")
+    # InsertTask(task)
+    # task = Task("te131st1", Task.__STATE_DONE__, "/home/qinsw/", "/home/qinsw/heh")
+    # InsertTask(task)
+    # task = Task("test1411", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
+    # InsertTask(task)
+    # task = Task("tes51t1", Task.__STATE_WAIT__, "/home/qinsw/", "/home/qinsw/heh")
+    # InsertTask(task)
+    # task = Task("test5151", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
+    # InsertTask(task)
+    # task = Task("tafaest1411", Task.__STATE_PROCESS__, "/home/qinsw/", "/home/qinsw/heh")
+    # InsertTask(task)
 
 
     #addDeletedListener(a)
@@ -110,7 +118,7 @@ if __name__ == '__main__':
     print tool.str2msecs(ttt)
 
     #addSelectedListener(a)
-    SelectALLTask()
-    SelectProcessingTask()
-    SelectWaitingTask()
-    SelectDoneTask()
+    # SelectALLTask()
+    # SelectProcessingTask()
+    # SelectWaitingTask()
+    # SelectDoneTask()

@@ -1,8 +1,10 @@
 # coding=utf-8
 import multiprocessing
+import threading
 from parser.Parser import *
 import tool.tools as tool
 import os
+import re
 
 class ParserManager(object):
 
@@ -10,25 +12,39 @@ class ParserManager(object):
         Single Instance
     '''
 
-    _pool = None
-    def __init__(self, parsers, file_path_list, modules=(), pg_callback=None):
+    def __init__(self, parsers, file_path_list, modules=()):
         '''
         :param parsers: the number of the pool processes
         :param file_path_list: the log list this manager to parser
         :param modules: the modules we want to get. e.g Parser.__M_JAVA__
-        :param pg_callback: the progress callback
         '''
-        self._pool = multiprocessing.Pool(processes=parsers)
-        self.pg_callback = pg_callback
         self.file_path_list = file_path_list
         self.modules = modules
 
+        # state of this manager whether task done
+        self.running = True
+        # wpipe is for send message from child process
+        # rpipe is for recv message in Main process
+        self.rpipe, self.wpipe = os.pipe()
+        self.recvThread = threading.Thread(target=self.__receiver, args=(self.rpipe, ))
+        self.recvThread.setDaemon(True)
+        self.recvThread.start()
+
+        # pool must be create after os pipe
+        self._pool = multiprocessing.Pool(processes=parsers)
+
+        # dict for collect the progress in sub processes
         self._progress_dict_ = multiprocessing.Manager().dict()
+        # for recording the finished file count
+        self._file_finished_ = multiprocessing.Manager().Value('d',0)
 
         # init result structure
         self._result_ = multiprocessing.Manager().dict()
         for m in self.modules:
             self._result_[m] = []
+
+    def setProgressCallback(self, cb):
+        self.pg_callback = cb
 
     def execute(self):
         '''Do job entry'''
@@ -45,10 +61,10 @@ class ParserManager(object):
         :param modules: the modules we care
         :return: the parse result we get
         """
-        print multiprocessing.current_process().pid
+        # print multiprocessing.current_process().pid
         tool.log("__start_one_parser", log_path)
         parser = Parser(log_path, modules)
-        parser.set_progress_listener(self.__progressCallback__)
+        parser.set_pipe_sender(self.wpipe)
         return parser.parse()
 
     def __getstate__(self):
@@ -58,51 +74,74 @@ class ParserManager(object):
         '''
         self_dict = self.__dict__.copy()
         del self_dict['_pool']
+        del self_dict['recvThread']
         return self_dict
 
     # Run in different process
-    def __progressCallback__(self, path, percent):
+    # 此处是各进程间的回调， 运行在各自进程中
+    # @Deprecated
+    def __progressCallback(self, path, percent):
         # calculate current progress
         self._progress_dict_[path] = percent
         progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
-
         # send progress to task manager
         if self.pg_callback: self.pg_callback(progress)
 
+    # receive from other process
+    def __receiver(self, receiver):
+        tool.log("start __receiver")
+        while self.running:
+            data = os.read(receiver, 256)
+            # get path and percent from data like "path: /home/path/xxx, percent: 0.1341"
+            m = re.match(r"^path: (/.+), percent: ([01]\.\d+)?$", data)
+            if m:
+                path = m.group(1)
+                percent = float(m.group(2))
+                #print "pid = %d" % multiprocessing.current_process().pid, "path = %s" % path, percent
+            else:
+                # TODO 某些时候， 会出现还没写入完成就被读走的情况， 一旦关键时刻发生，则会导致进度不是百分之百
+                # __receiver.error : not formatted data : -30 (copy).log, percent: 0.209564000682
+                tool.log("__receiver.error", "not formatted data : %s" % data)
+                continue
+
+            # calculate current progress
+            self._progress_dict_[path] = percent
+            progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
+
+            # send progress to task manager
+            # TODO 需要用name作为标识
+            if self.pg_callback: self.pg_callback(progress)
+
     # TODO 在这儿做外部去重
-    # 此处是各进程调用回调返回参数处， 运行在主进程中
+    # 此处是各进程调用回调返回参数处， 运行在主UI进程中
     def __callback(self, result):
         '''
         The result callback of parser
         :param result: from parser
         '''
-        print "before:", self._result_
+
+        print "pri finished", self._file_finished_.value
+        self._file_finished_.value = self._file_finished_.value + 1
+        print "all", len(self.file_path_list)
+        print "finished", self._file_finished_.value
+
+        #print "before:", self._result_
+        # TODO 将各个进程的结果汇总
         for m in self.modules:
             if len(result[m]) > 0:
                 self._result_[m]+=result[m]
-        print "after:", self._result_
+        #print "after:", self._result_
 
-        print multiprocessing.current_process().pid
-        progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
-        print "self._progress_ = ", progress
-        if progress >= 1.0:
+        # TODO 去重
+
+        #print multiprocessing.current_process().pid
+        #progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
+        #print "self._progress_ = ", progress
+        #if progress >= 1.0:
+        if self._file_finished_.value == len(self.file_path_list):
             print "Should remove duplicate result"
             print "Start thread to generate result"
 
+
 def proxy(cls_instance, log, modules):
     return cls_instance.__run__(log, modules)
-
-
-'''
-    #_listeners={}
-    # For UI
-    def add_parser_listener(self, func, id):
-        self._listeners[id] = func
-
-    def remove_parser_listener(self, id):
-        del self._listeners[id]
-
-    def print_listeners(self):
-        for key in self._listeners:
-            print key, " => ", self._listeners[key]
-'''

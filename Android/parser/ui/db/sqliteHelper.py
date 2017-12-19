@@ -155,6 +155,7 @@ def update(sql, args=()):
     db = sqlite3.connect(__getDbPath())
     cursor = db.cursor()
     try:
+        print args
         cursor.execute(sql, args)
         db.commit()
         __notifyUpdated(True)

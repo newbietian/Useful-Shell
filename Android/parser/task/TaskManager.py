@@ -38,11 +38,22 @@ class ProcessingTaskQueue(TaskQueue):
             t.state = Task.__STATE_PROCESSING__
         super(ProcessingTaskQueue, self).put(t)
 
-        # TODO 数据库操作，更新task的状态 => Processing
+        # 数据库操作，更新task的状态 => Processing
         Presenter.UpdateTaskState(t.name, Task.__STATE_PROCESSING__)
 
         # TODO 启动线程池执行任务
-        pm = ParserManager(t, )
+        #pm = ParserManager(t, )
+        tool.log("start ParserManager")
+
+    def remove(self, t):
+        if t in self._queue:
+            self._queue.remove(t)
+
+    def removeById(self, id):
+        for t in self._queue:
+            if t.name == id:
+                self._queue.remove(t)
+                return
 
 class WaitingTaskQueue(TaskQueue):
     def __init__(self):
@@ -53,7 +64,7 @@ class WaitingTaskQueue(TaskQueue):
             t.state = Task.__STATE_WAITING__
         super(WaitingTaskQueue, self).put(t)
 
-        #TODO 数据库操作，更新task的状态 => Waiting
+        # 数据库操作，更新task的状态 => Waiting
         Presenter.UpdateTaskState(t.name, Task.__STATE_WAITING__)
 
 
@@ -79,20 +90,29 @@ class TaskManager(object):
             cls.instance = super(TaskManager, cls).__new__(cls, *args, **kwargs)
             cls._waitingQueue = WaitingTaskQueue()
             cls._processingQueue = ProcessingTaskQueue()
-            # TODO
-            cls._task_handler = threading.Thread(target=cls._handle_tasks)
-            cls._task_handler.start()
             cls._running = True
+            cls._task_handler = None
         return cls.instance
+
+    def start(self):
+        if not self._task_handler:
+            self._task_handler = threading.Thread(target=self._handle_tasks)
+            self._task_handler.start()
 
     def addTask(self, task):
         self._waitingQueue.put(task)
 
     def _handle_tasks(self):
+        tool.log("_handle_tasks", "start")
         while self._running:
+            # A 0.5 second loop
+            time.sleep(0.5)
+
+            if not self._waitingQueue.size() > 0:
+                continue
+
             # calculate current work num
             if self._processingQueue.size() > 0:
-                #TODO calculate
                 current_load = self._processingQueue.getLoadSum()
                 future_load = self._waitingQueue.getHeaderLoad()
                 if current_load + future_load <= TaskManager._MAX_PROCESSING_:
@@ -105,8 +125,15 @@ class TaskManager(object):
                 task = self._waitingQueue.get()
                 self._processingQueue.put(task)
 
-            # A 0.5 second loop
-            time.sleep(0.5)
+    def onTaskDone(self, id):
+        self._processingQueue.removeById(id=id)
+
+    def close(self):
+        self._running = False
+        self._waitingQueue = None
+        self._processingQueue = None
+        self._task_handler = None
+        self.instance = None
 
 
 

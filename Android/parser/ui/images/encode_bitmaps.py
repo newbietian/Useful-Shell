@@ -9,12 +9,16 @@ from wx.tools import img2py
 
 
 command_lines = [
-    "   -F -n clean_history clean_history.png    images.py",
-    "-a -F -n error error.png                    images.py",
-    "-a -F -n info info.png                      images.py",
-    "-a -F -n new new.png                        images.py",
-    "-a -F -n splash splash.png                  images.py",
-    "-a -F -n success success.png                images.py"
+    "   -F -n action_clean_history        action_clean_history.png              images.py",
+    "-a -F -n action_new                  action_new.png                        images.py",
+    "-a -F -n app_splash                  app_splash.png                        images.py",
+    "-a -F -n web_service_error           web_service_error.png                 images.py",
+    "-a -F -n web_service_info            web_service_info.png                  images.py",
+    "-a -F -n web_service_success         web_service_success.png               images.py",
+    "-a -F -n task_done                   task_done.png                         images.py",
+    "-a -F -n task_process                task_process.png                      images.py",
+    "-a -F -n task_start                  task_start.png                        images.py",
+    "-a -F -n task_waiting                task_waiting.png                      images.py"
     ]
 
 if __name__ == "__main__":

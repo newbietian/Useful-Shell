@@ -1,5 +1,6 @@
 # coding=utf-8
 import json
+import os
 
 from tool.StringPattern import *
 from crash.crash import *
@@ -53,8 +54,16 @@ class Parser(object):
         t = self.log_size / self.__THRESHOLD__
         self.pg_levels = [t*(x+1) for x in range(self.__THRESHOLD__)]
 
+        #sender
+        self.sender = None
+
+    @DeprecationWarning
+    # see set_pipe_sender
     def set_progress_listener(self ,listener):
         self.pg_listener = listener
+
+    def set_pipe_sender(self, wpipe):
+        self.sender = wpipe
 
     def parse(self):
         # 打开log文件
@@ -80,11 +89,12 @@ class Parser(object):
                 jr = java_parser.parse()
                 if jr not in all_module_results[__M_JAVA__]:
                     all_module_results[__M_JAVA__].append(jr)
-                    print jr.occurred_time
+                    #print jr.occurred_time
                 else:
                     p_index = all_module_results[__M_JAVA__].index(jr)
                     p = all_module_results[__M_JAVA__][p_index]
-                    print "exception in line {0} is same as {1}".format(jr.location_in_log.found_line, p.location_in_log)
+                    # TODO 内部去重
+                    #print "exception in line {0} is same as {1}".format(jr.location_in_log.found_line, p.location_in_log)
 
             elif __M_NATIVE__ in self.modules and line.find(NativeCrashParser.__ENTRY__) > 0:
                 print line
@@ -94,13 +104,20 @@ class Parser(object):
                 pass
 
             # get progress
+            # @Deprecated see @self.sender
             if self.pg_listener\
                     and logfp.tell() >= self.pg_levels[self.pg_curr_level]:
                 self.pg_curr_level += 1
                 percent = logfp.tell() / self.log_size
                 self.pg_listener(self.log_path, percent)
 
-        print "len(all_module_results[__M_JAVA__])", len(all_module_results[__M_JAVA__])
+            if self.sender\
+                    and logfp.tell() >= self.pg_levels[self.pg_curr_level]:
+                self.pg_curr_level += 1
+                percent = logfp.tell() / self.log_size
+                os.write(self.sender, "path: {0}, percent: {1}".format(self.log_path, percent))
+
+        #print "len(all_module_results[__M_JAVA__])", len(all_module_results[__M_JAVA__])
         return all_module_results
 
 if __name__ == "__main__":
