@@ -4,6 +4,8 @@ from tool import tools as __tool
 
 __TABLE_NAME__='history'
 
+DO_CREATE_DB = False
+
 def __getDbPath():
     app_path = __tool.getAppDataPath()
     if not app_path.endswith("/"):
@@ -12,7 +14,12 @@ def __getDbPath():
     return db_path
 
 # create database in $HOME path
-def createTables():
+def tryCreateTables():
+    global DO_CREATE_DB
+    if DO_CREATE_DB:
+        return
+    DO_CREATE_DB = True
+
     db = sqlite3.connect(__getDbPath())
     cursor = db.cursor()
 
@@ -36,6 +43,7 @@ def insert(sql, args=()):
         __notifyInsert(False, "sql is null")
         __tool.log("select.error", "sql is null")
         return False
+    tryCreateTables()
     db = sqlite3.connect(__getDbPath())
     cursor = db.cursor()
     try:
@@ -80,6 +88,7 @@ def select(sql, args=()):
         __tool.log("select.error", "sql is null")
         return None
 
+    tryCreateTables()
     db = sqlite3.connect(__getDbPath())
     cursor = db.cursor()
     try:
@@ -115,6 +124,7 @@ def delete(sql, args=()):
         __notifyDeleted(False, "sql is null")
         __tool.log("delete.error", "sql is null")
         return
+    tryCreateTables()
     db = sqlite3.connect(__getDbPath())
     cursor = db.cursor()
     try:
@@ -152,6 +162,7 @@ def update(sql, args=()):
         __notifyUpdated(False, "sql is null")
         __tool.log("update", "sqlite is null")
         return False
+    tryCreateTables()
     db = sqlite3.connect(__getDbPath())
     cursor = db.cursor()
     try:
@@ -189,7 +200,7 @@ def __notifyUpdated(result, msg=''):
 
 if __name__ == "__main__":
     __tool.log(__getDbPath())
-    createTables()
+    tryCreateTables()
     def a(r,m):
         print "__notifyUpdated a ", r, m
     # def b(r):

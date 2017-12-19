@@ -511,7 +511,8 @@ class AppNewTaskDialog(wx.Dialog):
         label.SetHelpText("Please select the log file/directory.")
         box.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
 
-        self.LogText = text = wx.TextCtrl(self, self.__LOG_TEXT_ID, "", size=(300, -1))
+        self.LogText = text = wx.TextCtrl(self, self.__LOG_TEXT_ID, "", size=(300, -1), style=wx.TE_READONLY)
+        self.LogText.Bind(wx.EVT_TEXT, self.__OnLogTextChanged)
         text.SetHelpText("Please select the log file/directory.")
         box.Add(text, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
 
@@ -531,6 +532,12 @@ class AppNewTaskDialog(wx.Dialog):
 
         sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
+        # error tip
+        self.logErrorTip = wx.StaticText(self, -1, "Log path must be set")
+        self.logErrorTip.SetForegroundColour((0xff, 0, 0))
+
+        sizer.Add(self.logErrorTip, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
         # --------------------------------------------------------
         # src
         box = wx.BoxSizer(wx.HORIZONTAL)
@@ -539,7 +546,7 @@ class AppNewTaskDialog(wx.Dialog):
         label.SetHelpText("Please select the project root directory.")
         box.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
 
-        self.SrcText = text = wx.TextCtrl(self, self.__SRC_TEXT_ID, "", size=(300, -1))
+        self.SrcText = text = wx.TextCtrl(self, self.__SRC_TEXT_ID, "", size=(300, -1), style=wx.TE_READONLY)
         text.SetHelpText("Please select the project root directory.")
         box.Add(text, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
 
@@ -566,6 +573,7 @@ class AppNewTaskDialog(wx.Dialog):
         #     btnsizer.AddButton(btn)
 
         btn = wx.Button(self, wx.ID_OK, "新增")
+        btn.Bind(wx.EVT_BUTTON, self.__OnConfirmClicked)
         #btn.SetHelpText("The OK button completes the dialog")
         btn.SetDefault()
         btnsizer.AddButton(btn)
@@ -579,6 +587,19 @@ class AppNewTaskDialog(wx.Dialog):
 
         self.SetSizer(sizer)
         sizer.Fit(self)
+
+    def __OnLogTextChanged(self, env):
+        if env.GetString():
+            self.logErrorTip.Hide()
+        else:
+            self.logErrorTip.Show()
+
+    def __OnConfirmClicked(self, env):
+        print "clicked"
+        if not self.LogPath or self.LogPath == '':
+           pass
+        else:
+            env.Skip()
 
     def __OnButtonClicked(self,env):
         print "__OnButtonClicked ", env.GetId()
@@ -702,6 +723,9 @@ class MainWindow(wx.Frame):
         val = dlg.ShowModal()
 
         if val == wx.ID_OK:
+            print "dlg.LogPath %s" % dlg.LogPath
+            print "dlg.SrcPath %s" % dlg.SrcPath
+            #TODO presenter
             print "You pressed OK\n"
         else:
             print "You pressed Cancel\n"
