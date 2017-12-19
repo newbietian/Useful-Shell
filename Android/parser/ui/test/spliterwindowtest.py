@@ -1,9 +1,11 @@
 #-*- coding=utf-8 -*-
-import wx
-import wx.lib.mixins.listctrl as listmix
-
 import os
 import sys
+
+import wx
+from wx.lib.agw import ultimatelistctrl as ULC
+
+from ui.lang import lang as LANG
 import ui.images.images as image
 from tool import tools as tool
 
@@ -97,6 +99,211 @@ class AppShowWindow(wx.SplitterWindow):
 
 
 # ------------------------------------------------------------------------------------------
+
+class UlcTaskList(wx.Panel):
+    """"""
+
+    def AddTask(self, task):
+        # self.ulc.InsertImageStringItem(0, "haha", 0)
+        # task.log_path
+        # task state_
+
+        pass
+
+
+    def OnItemSelected(self, event):
+        self.currentIndex = event.m_itemIndex
+        print "OnItemSelected: %s, %s\n" %(self.currentIndex, self.ulc.GetItemText(self.currentIndex))
+        if self.ulc.GetPyData(self.currentIndex):
+            print ("PYDATA = %s\n" % repr(self.ulc.GetPyData(self.currentIndex)))
+
+        event.Skip()
+
+    def OnHyperTextClicked(self,event):
+        print "You click a hypertext"
+        self.currentIndex = event.m_itemIndex
+        item = self.ulc.GetItem(self.currentIndex, 1)
+        if item.GetPyData():
+            print ("PYDATA = %s\n" % repr(item.GetPyData()))
+
+        allcount = self.ulc.GetItemCount()
+        print allcount
+
+        self.ulc.InsertImageStringItem(allcount,
+                                                        "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android",
+                                       0)
+
+        event.Skip()
+    # ----------------------------------------------------------------------
+    def __init__(self, parent):
+        """Constructor"""
+        wx.Panel.__init__(self, parent)
+
+        try:
+            font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
+            boldfont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        except AttributeError:
+            # wxPython 4 / Phoenix updated SystemSettings
+            font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+            boldfont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+
+        self.il = ULC.PyImageList(20, 20)
+        self.il.Add(image.task_process.getBitmap())
+        self.il.Add(image.task_start.getBitmap())
+        self.il.Add(image.task_waiting.getBitmap())
+        self.il.Add(image.task_done.getBitmap())
+
+        self.ulc = ULC.UltimateListCtrl(self, agwStyle=wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES)
+        self.ulc.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+
+        self.Bind(ULC.EVT_LIST_ITEM_HYPERLINK, self.OnHyperTextClicked, self.ulc)
+        self.Bind(ULC.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.ulc)
+
+        # 参考资料
+        # http://xoomer.virgilio.it/infinity77/Phoenix/lib.agw.ultimatelistctrl.UltimateListItem.html#lib.agw.ultimatelistctrl.UltimateListItem
+        # 设置第一列的样式
+        # 创建一个ULC list item
+        info = ULC.UltimateListItem()
+        # mask可以出现哪些形式的
+        info._mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT
+        info._format = ULC.ULC_FORMAT_LEFT
+        info._text = LANG.task_log_path
+        self.ulc.InsertColumnInfo(0, info)
+
+        info = ULC.UltimateListItem()
+        info._format = ULC.ULC_FORMAT_LEFT
+        info._mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT | ULC.ULC_MASK_HYPERTEXT
+        info._text = LANG.task_status
+        self.ulc.InsertColumnInfo(1, info)
+
+        self.ulc.SetColumnWidth(0, 600)
+        self.ulc.SetColumnWidth(1, 200)
+
+        self.ulc.InsertImageStringItem(0, "haha", 0)
+        # for i in range(10):
+        #     index = self.ulc.InsertImageStringItem(i,
+        #                                                     "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android",
+        #                                            0)
+        #     #self.ultimateList.InsertStringItem(i, "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android")
+        #     item = self.ulc.GetItem(i, 1)
+        #     if i < 3 :
+        #         self.gauge = wx.Gauge(self.ulc, -1, size=(200, 20), style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)
+        #         self.gauge.SetValue(20)
+        #         item.SetWindow(self.gauge)
+        #         self.ulc.SetItem(item)
+        #         self.ulc.SetStringItem(i, 1, "99%")
+        #     else:
+        #         self.ulc.SetStringItem(i, 1, "Waiting...")
+        #
+        # item = self.ulc.GetItem(5, 1)
+        # item.SetHyperText(True)
+        # s = "https://www.google.com.hk"
+        # item.SetPyData(s)
+        # self.ulc.SetItem(item)
+
+        #self.ultimateList.SetStringItem(0, 2, "Rock")
+
+        #self.ultimateList.InsertStringItem(1, "Puffy")
+        #self.ultimateList.SetStringItem(1, 1, "Bring It!")
+        #self.ultimateList.SetStringItem(1, 2, "Pop")
+
+        #self.ultimateList.InsertStringItem(2, "Family Force 5")
+        #self.ultimateList.SetStringItem(2, 1, "III")
+        #self.ultimateList.SetStringItem(2, 2, "Crunk")
+
+
+        #item = self.ultimateList.GetItem(1, 1)
+        #self.gauge = wx.Gauge(self.ultimateList, -1, size=(300,20),style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
+        #self.gauge.SetValue(20)
+        #item.SetWindow(self.gauge)
+        #self.ultimateList.SetItem(item)
+
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.ulc, 1, flag=wx.EXPAND)
+        self.SetSizer(sizer)
+# ------------------------------------------------------------------------------------------
+
+class UlcTaskDoneList(wx.Panel):
+    """"""
+
+    def AddTask(self, task):
+        # self.ulc.InsertImageStringItem(0, "haha", 0)
+        # task.log_path
+        # task state_
+        pass
+
+
+    def OnItemSelected(self, event):
+        self.currentIndex = event.m_itemIndex
+        print "OnItemSelected: %s, %s\n" %(self.currentIndex, self.ulc.GetItemText(self.currentIndex))
+        if self.ulc.GetPyData(self.currentIndex):
+            print ("PYDATA = %s\n" % repr(self.ulc.GetPyData(self.currentIndex)))
+
+        event.Skip()
+
+    def OnHyperTextClicked(self,event):
+        print "You click a hypertext"
+        self.currentIndex = event.m_itemIndex
+        item = self.ulc.GetItem(self.currentIndex, 1)
+        if item.GetPyData():
+            print ("PYDATA = %s\n" % repr(item.GetPyData()))
+
+        allcount = self.ulc.GetItemCount()
+        print allcount
+
+        self.ulc.InsertImageStringItem(allcount,
+                                                        "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android",
+                                       0)
+
+        event.Skip()
+    # ----------------------------------------------------------------------
+    def __init__(self, parent):
+        """Constructor"""
+        wx.Panel.__init__(self, parent)
+
+        try:
+            font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
+            boldfont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        except AttributeError:
+            # wxPython 4 / Phoenix updated SystemSettings
+            font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+            boldfont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+
+        self.il = ULC.PyImageList(20, 20)
+        self.il.Add(image.task_process.getBitmap())
+        self.il.Add(image.task_start.getBitmap())
+        self.il.Add(image.task_waiting.getBitmap())
+        self.il.Add(image.task_done.getBitmap())
+
+        self.ulc = ULC.UltimateListCtrl(self, agwStyle=wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES)
+        self.ulc.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+
+        self.Bind(ULC.EVT_LIST_ITEM_HYPERLINK, self.OnHyperTextClicked, self.ulc)
+        self.Bind(ULC.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.ulc)
+
+        # 参考资料
+        # http://xoomer.virgilio.it/infinity77/Phoenix/lib.agw.ultimatelistctrl.UltimateListItem.html#lib.agw.ultimatelistctrl.UltimateListItem
+        # 设置第一列的样式
+        # 创建一个ULC list item
+        info = ULC.UltimateListItem()
+        # mask可以出现哪些形式的
+        info._mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT
+        info._format = ULC.ULC_FORMAT_LEFT
+        info._text = LANG.finished
+        self.ulc.InsertColumnInfo(0, info)
+
+        info = ULC.UltimateListItem()
+        info._format = ULC.ULC_FORMAT_LEFT
+        info._mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT | ULC.ULC_MASK_HYPERTEXT
+        self.ulc.InsertColumnInfo(1, info)
+
+        self.ulc.SetColumnWidth(0, 600)
+        self.ulc.SetColumnWidth(1, 200)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.ulc, 1, flag=wx.EXPAND)
+        self.SetSizer(sizer)
 
 #-------------------------------------------------------------------------------------------
 
@@ -326,9 +533,9 @@ class AppNewTaskDialog(wx.Dialog):
 
 #---------------------------------------------------------------------------------------------
 #主框架
-class newframe(wx.Frame):
+class MainWindow(wx.Frame):
     def __init__(self):
-        wx.Frame.__init__(self,None,-1,'Log Analysis Tool',size=(800,500))
+        wx.Frame.__init__(self,None,-1,LANG.app_name,size=(800,500))
         self.Centre()
         self.SetMinSize((800,500))
         self.SetMaxSize((800,500))
@@ -338,27 +545,12 @@ class newframe(wx.Frame):
 
     #主体窗口
     def mainWindow(self):
-        #self.mw=wx.SplitterWindow(self,style=wx.SP_NOSASH|wx.SP_NOBORDER)
-        #self.panel1=wx.Panel(self.mw,-1,style=wx.SUNKEN_BORDER)
-        #self.panel1.SetBackgroundColour('#5bb686')
+        self.mWindow = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
+        self.ulcTaskPanel = UlcTaskList(self.mWindow)#wx.Panel(self.finished_sp, -1, style=wx.SUNKEN_BORDER)
+        self.ulcTaskDonePanel =UlcTaskDoneList(self.mWindow)#wx.Panel(self.finished_sp, -1, style=wx.SUNKEN_BORDER)
 
-        self.finished_sp = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE)
-        self.finished_sp_p1 = wx.Panel(self.finished_sp, -1, style=wx.SUNKEN_BORDER)
-        self.finished_sp_p2 =wx.Panel(self.finished_sp, -1, style=wx.SUNKEN_BORDER)
-        #self.finished_sp_p1.SetBackgroundColour('#5bb686')
-        #self.finished_sp_p2.SetBackgroundColour('#5bb686')
-
-        self.finished_sp.SplitHorizontally(self.finished_sp_p1, self.finished_sp_p2, 200)
-        self.finished_sp.SetMinimumPaneSize(30)
-
-        #TestListCtrlPanel(self.finished_sp_p1)
-
-        #self.mw.SplitVertically(self.panel1,self.finished_sp,300)
-        #self.mw.SetMinimumPaneSize(300)
-
-        #newTask = wx.Bitmap("images/action_new.png", wx.BITMAP_TYPE_PNG)
-        #self.chooseLogButton = wx.BitmapButton(self.panel1,10,newTask,
-        #                                 pos=(100, 150),size=(150,150))
+        self.mWindow.SplitHorizontally(self.ulcTaskPanel, self.ulcTaskDonePanel, 200)
+        self.mWindow.SetMinimumPaneSize(30)
 
     #状态栏
     def statusbar(self):
@@ -411,69 +603,12 @@ class newframe(wx.Frame):
     def __ShowHelp(self):
         pass
 
-    #状态栏坐标显示
-    # def OnMotion(self,event):
-    #     self.statusbar.SetStatusText(u'光标坐标:  '+str(event.GetPositionTuple()),0)
-    # #菜单栏
-    # def menubar(self):
-    #     menubar=wx.MenuBar()
-    #     menu1=wx.Menu()
-    #     menu2=wx.Menu()
-    #     menu3=wx.Menu()
-    #     menubar.Append(menu1,u'文件')
-    #     menubar.Append(menu2,u'设置')
-    #     menubar.Append(menu3,u'退出')
-    #     self.SetMenuBar(menubar)
-    # #panel1按钮数据
-    # def buttondata(self):
-    #     return [['./pic/homepage.png',u'主页'],
-    #            ['./pic/lock.png',u'个人人密码管理助手'],
-    #            ['./pic/diary.png',u'日记每一天']]
-    # #panel1按钮创建
-    # def buttoncreate(self,index):
-    #     pic=wx.Image(self.buttondata()[index][0],wx.BITMAP_TYPE_PNG).Scale(80,80).ConvertToBitmap()
-    #     self.button=buttons.GenBitmapButton(self.panel1,-1,pic,size=(150,120))
-    #     self.button.SetBezelWidth(7)
-    #     self.button.SetBackgroundColour('CORAL')
-    #     self.button.SetToolTipString(self.buttondata()[index][1])
-    #     return self.button
-    # #panel1按钮添加
-    # def panel1buttonadd(self):
-    #     self.button1=self.buttoncreate(0)
-    #     self.button2=self.buttoncreate(1)
-    #     self.button3=self.buttoncreate(2)
-    #     sizer = wx.FlexGridSizer( rows=0,cols=1, hgap=5, vgap=5)
-    #     sizer.Add(self.button1,0,wx.EXPAND)
-    #     sizer.Add(self.button2,0,wx.EXPAND)
-    #     sizer.Add(self.button3,0,wx.EXPAND)
-    #     sizer.AddGrowableCol(0, proportion=1)
-    #     sizer.Layout()
-    #     self.panel1.SetSizer(sizer)
-    #     self.panel1.Fit()
-    # #按钮事件绑定
-    # def panel1buttonbind(self):
-    #     self.Bind(wx.EVT_BUTTON,self.initindex,self.button1)
-    #     self.Bind(wx.EVT_BUTTON,self.KEYhandler,self.button2)
-    #     self.Bind(wx.EVT_BUTTON,self.RIJIhandler,self.button3)
-    # #自定义光标
-    # def cursorinit(self):
-    #     cursorpic=wx.Image('./pic/cursor.png',wx.BITMAP_TYPE_PNG)
-    #     self.cursor=wx.CursorFromImage(cursorpic)
-    #     self.SetCursor(self.cursor)
-    # #关闭index定时器
-    # def Shutdowntimer(self):
-    #     try:
-    #         self.index.timer.Stop()
-    #         del self.index.timer
-    #     except:
-    #         pass
-
 if __name__ == '__main__':
     newapp=wx.App(False)
     #启动画面
     #登录对话框
     #主框架
     print os.getcwd()
-    frame=newframe()
+    frame=MainWindow()
     frame.Show()
     newapp.MainLoop()

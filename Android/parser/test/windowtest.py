@@ -2,7 +2,7 @@
 import os
 import wx
 
-from ui.test.spliterwindowtest import newframe
+from ui.test.spliterwindowtest import MainWindow
 
 if __name__ == '__main__':
     newapp=wx.App(False)
@@ -10,6 +10,6 @@ if __name__ == '__main__':
     #登录对话框
     #主框架
     print os.getcwd()
-    frame=newframe()
+    frame=MainWindow()
     frame.Show()
     newapp.MainLoop()

@@ -18,7 +18,8 @@ command_lines = [
     "-a -F -n task_done                   task_done.png                         images.py",
     "-a -F -n task_process                task_process.png                      images.py",
     "-a -F -n task_start                  task_start.png                        images.py",
-    "-a -F -n task_waiting                task_waiting.png                      images.py"
+    "-a -F -n task_waiting                task_waiting.png                      images.py",
+    "-a -F -n task_generating             task_generating.png                   images.py"
     ]
 
 if __name__ == "__main__":

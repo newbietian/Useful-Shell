@@ -9,9 +9,20 @@ class Lang(object):
             "zh": "安卓日志分析工具",
             "en": "Android Log Analysis Tool"
         },
-        "": (),
+        "finished": {
+            "zh": "已完成",
+            "en": "Finished"
+        },
+        "task_log_path": {
+            "zh": "日志路径",
+            "en": "Log Path"
+        },
+        "task_status": {
+            "zh": "状态",
+            "en": "Status"
+        },
     }
-    __LangType = 'en'
+    __LangType = 'zh'
 
     class ConstError(TypeError): pass
     class IdError(TypeError): pass
