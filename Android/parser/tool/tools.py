@@ -71,26 +71,40 @@ def getFilesSizeMB(list):
 # 如果文件夹中文件过多，可能耗时较久
 def getParseableFileList(path):
     list=[]
+    if not checkFileExists(path) and not checkDirExists(path):
+        raise AttributeError, "Path is not exist!"
+
+    if os.path.isfile(path) and __checkIsParseableFile(path):
+        list.append(path)
+        return list
+
     for root, sub_dirs, files in os.walk(path):
         for file in files:
             file_path = os.path.join(root, file)
             # 使用命令行file工具去判断此file是否是我们想要的格式，排除图片二进制或其他格式的文件
-            p = subprocess.Popen('file ' + "\"" + file_path + "\"", shell=True, stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT)
-            file_property = p.stdout.readline()
-            if file_property.find("ASCII") > 0 or file_property.find("UTF-8") > 0:
-                try:
-                    if file_path.endswith(".hex") \
-                            or file_path.endswith(".css") \
-                            or file_path.endswith(".sh") \
-                            or file_path.endswith(".json") \
-                            or file_path.endswith(".html"):
-                        continue
-                    else:
-                        list.append(file_path)
-                except Exception as e:
-                    log("getParseableFileList.error", e.message)
+            if __checkIsParseableFile(file_path):
+                list.append(file_path)
     return list
+
+def __checkIsParseableFile(path):
+    p = subprocess.Popen('file ' + "\"" + path + "\"", shell=True, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
+    file_property = p.stdout.readline()
+    if file_property.find("ASCII") > 0 or file_property.find("UTF-8") > 0:
+        try:
+            if path.endswith(".hex") \
+                    or path.endswith(".css") \
+                    or path.endswith(".sh") \
+                    or path.endswith(".json") \
+                    or path.endswith(".html"):
+                return False
+            else:
+                return True
+        except Exception as e:
+            return False
+    else:
+        return False
+
 
 def str2msecs(time_str):
     """ 将字符串的时间转化为ms """
@@ -167,17 +181,18 @@ class Time(object):
 if __name__ == "__main__":
     log("hello is %d" % 1)
     log("hello {} my friends".format("pengtian"))
-    log(getAppDataPath())
-    log(getHomePath())
-    log(checkDirExists(getHomePath()))
-    log(checkFileExists(getAppDataPath()+"/app.db"))
-    Preference()
-    getFileSize("")
-    a = time.time()
-    print str2msecs("12-12 13:51:13.413")
-    print time.time()-a
-
-    from task.task import Task
-    print getDirSize("/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android")
-    print getDirSizeMB("/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android"), "MB"
-    print  getDirSizeMB("/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android")/ Task.__LOAD_UNIT__ + 1
+    # log(getAppDataPath())
+    # log(getHomePath())
+    # log(checkDirExists(getHomePath()))
+    # log(checkFileExists(getAppDataPath()+"/app.db"))
+    # Preference()
+    # getFileSize("")
+    # a = time.time()
+    # print str2msecs("12-12 13:51:13.413")
+    # print time.time()-a
+    #
+    # from task.task import Task
+    # print getDirSize("/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android")
+    # print getDirSizeMB("/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android"), "MB"
+    # print  getDirSizeMB("/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android")/ Task.__LOAD_UNIT__ + 1
+    print getParseableFileList("/home/qinsw/test/1 (136th copy).txt")

@@ -12,15 +12,18 @@ class ParserManager(object):
         Single Instance
     '''
 
-    def __init__(self, parsers, file_path_list, modules=()):
+    class ArgumentError(Exception): pass
+
+    # parsers, file_path_list, modules=()
+    def __init__(self, task):
         '''
         :param parsers: the number of the pool processes
         :param file_path_list: the log list this manager to parser
         :param modules: the modules we want to get. e.g Parser.__M_JAVA__
         '''
-        self.file_path_list = file_path_list
-        self.modules = modules
 
+        if not task or not len(task.files) > 0:
+            raise AttributeError, "Illegal task argument."
         # state of this manager whether task done
         self.running = True
         # wpipe is for send message from child process
@@ -31,7 +34,13 @@ class ParserManager(object):
         self.recvThread.start()
 
         # pool must be create after os pipe
-        self._pool = multiprocessing.Pool(processes=parsers)
+        self._pool = multiprocessing.Pool(processes=task.getLoad())
+        # self.file_path_list = file_path_list
+        # self.modules = modules
+        self.file_path_list = task.files
+        self.src_path = task.src_path
+        self.modules = ()
+
 
         # dict for collect the progress in sub processes
         self._progress_dict_ = multiprocessing.Manager().dict()

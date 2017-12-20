@@ -25,10 +25,9 @@ def tryCreateTables():
 
     cursor.execute("CREATE TABLE IF NOT EXISTS history ("
                     " id integer PRIMARY KEY AUTOINCREMENT,"
-                    " name varchar UNIQUE,"
-                    " state integer,"
-                    " log_path varchar,"
+                    " log_path varchar UNIQUE,"
                     " src_path varchar,"
+                    " state integer,"
                     " result_path varchar,"
                     " create_time TimeStamp NOT NULL DEFAULT (DATETIME('now','localtime')) )")
 

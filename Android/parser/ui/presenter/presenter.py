@@ -1,81 +1,45 @@
 #-*- coding=utf-8 -*-
-from ui.db import sqliteHelper as dbHelper
-#from task.TaskManager import TaskManager
+from task.TaskManager import TaskManager
+import dbPresenter
 
 # connect View and Model
 
-# DB
-# ---------------------
-
-def InsertTask(task):
-    sql = "INSERT INTO history (name, state, log_path, src_path) VALUES (?, ?, ?, ?)"
-    args=(task.name, task.state, task.log_path, task.src_path)
-    dbHelper.insert(sql, args)
-
-# ---------------------
-def DeleteAll():
-    sql = "DELETE FROM history"
-    dbHelper.delete(sql)
-
-def DeleteOne(name):
-    sql = "DELETE FROM history WHERE name = ?"
-    args = (name, )
-    dbHelper.delete(sql, args)
-
-# ---------------------
-def UpdateTaskName(old_name, new_name):
-    sql = "UPDATE history SET name = ? WHERE name = ?"
-    args = (new_name, old_name)
-    dbHelper.update(sql, args)
-
-def UpdateTaskResultPath(name, path):
-    sql = "UPDATE history SET result_path = ? WHERE name = ?"
-    args = (path, name)
-    dbHelper.update(sql, args)
-
-def UpdateTaskState(name, new_state):
-    sql = "UPDATE history SET state = ? WHERE name = ?"
-    args = (new_state, name)
-    dbHelper.update(sql, args)
-
-# ---------------------
-def SelectALLTask():
-    sql = "SELECT * FROM history"
-    return dbHelper.select(sql)
-
-def SelectProcessingTask():
-    sql = "SELECT * FROM history WHERE state = ?"
-    args = (Task.__STATE_PROCESSING__, )
-    return dbHelper.select(sql, args)
-
-def SelectWaitingTask():
-    sql = "SELECT * FROM history WHERE state = ?"
-    args = (Task.__STATE_WAITING__, )
-    return dbHelper.select(sql, args)
-
-def SelectDoneTask():
-    sql = "SELECT * FROM history WHERE state = ?"
-    args = (Task.__STATE_DONE__, )
-    return dbHelper.select(sql, args)
-
-# ---------------------
-def AddInsertedListener(callback):
-    dbHelper.addInsertedListener(callback)
-
-def AddDeletedListener(callback):
-    dbHelper.addDeletedListener(callback)
-
-#def addSelectedListener(callback):
-#    dbHelper.addSelectedListener(callback)
-
-def AddUpdatedListener(callback):
-    dbHelper.addUpdatedListener(callback)
 
 # ----------------------------------------------------------------------------------------------------
 
-class UIPresenter(object):
+class Presenter(object):
     def __init__(self, window):
         self.window = window
+        self.taskManager = TaskManager()
+
+        # Interface with 2 args:
+        dbPresenter.AddInsertedListener(self.OnTaskDeletedListener)
+        dbPresenter.AddUpdatedListener(self.OnTaskUpdatedListener)
+        dbPresenter.AddDeletedListener(self.OnTaskDeletedListener)
+
+    # called for ui
+    def CreateTask(self, log_path, src_path=''):
+        task = Task(log_path, src_path)
+        # insert to db
+        dbPresenter.InsertTask(task)
+
+        # show in ui
+        # self.window.
+
+
+    def OnTaskInsertedListener(self, success, msg):
+        if success:
+            pass
+        else:
+            tool.log("OnTaskInsertedListener.error", "Insert Error")
+
+    def OnTaskUpdatedListener(self):
+        pass
+
+    def OnTaskDeletedListener(self):
+        pass
+
+
 
 
 

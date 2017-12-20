@@ -40,7 +40,9 @@ class Parser(object):
 
     def __init__(self, log_path, modules=()):
         self.log_path = log_path
-        self.modules = modules
+        # TODO
+        # self.modules = modules
+        self.modules = (__M_JAVA__, __M_NATIVE__)
         self.searcher = StringPattern()
 
         self.log_size = float(tool.getFileSize(log_path))

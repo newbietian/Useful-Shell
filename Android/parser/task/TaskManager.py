@@ -3,8 +3,8 @@ import threading
 import time
 import tool.tools as tool
 from task import Task
-from parser import ParserManager
-from ui.presenter import presenter as Presenter
+from parser.ParserManager import ParserManager
+from ui.presenter import dbPresenter
 
 class TaskQueue(object):
     def __init__(self):
@@ -39,11 +39,8 @@ class ProcessingTaskQueue(TaskQueue):
         super(ProcessingTaskQueue, self).put(t)
 
         # 数据库操作，更新task的状态 => Processing
-        Presenter.UpdateTaskState(t.name, Task.__STATE_PROCESSING__)
+        dbPresenter.UpdateTaskState(t.log_path, Task.__STATE_PROCESSING__)
 
-        # TODO 启动线程池执行任务
-        #pm = ParserManager(t, )
-        tool.log("start ParserManager")
 
     def remove(self, t):
         if t in self._queue:
@@ -65,7 +62,7 @@ class WaitingTaskQueue(TaskQueue):
         super(WaitingTaskQueue, self).put(t)
 
         # 数据库操作，更新task的状态 => Waiting
-        Presenter.UpdateTaskState(t.name, Task.__STATE_WAITING__)
+        dbPresenter.UpdateTaskState(t.log_path, Task.__STATE_WAITING__)
 
 
 class TaskManager(object):
@@ -84,6 +81,7 @@ class TaskManager(object):
     _processingQueue = None
     _task_handler = None
     _running = False
+    _progressListener = None
 
     def __new__(cls, *args, **kwargs):
         if not cls.instance:
@@ -119,13 +117,24 @@ class TaskManager(object):
                     # put the task to _processingQueue
                     task = self._waitingQueue.get()
                     self._processingQueue.put(task)
+
+                    # 启动进程池执行任务
+                    pm = ParserManager(task)
+                    pm.setProgressCallback(self._progressListener)
+                    pm.execute()
+                    tool.log("start ParserManager 1")
                 else:
                     tool.log("_handle_task", "please hold on")
             else:
                 task = self._waitingQueue.get()
                 self._processingQueue.put(task)
 
-    def onTaskDone(self, id):
+                # 启动进程池执行任务
+                pm = ParserManager(task)
+                pm.setProgressCallback(self._progressListener)
+                pm.execute()
+
+    def OnTaskDone(self, id):
         self._processingQueue.removeById(id=id)
 
     def close(self):
@@ -134,6 +143,10 @@ class TaskManager(object):
         self._processingQueue = None
         self._task_handler = None
         self.instance = None
+
+    def SetProgressListener(self, listener):
+        self._progressListener = listener
+
 
 
 

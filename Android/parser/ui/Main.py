@@ -7,6 +7,7 @@ from wx.lib.agw import ultimatelistctrl as ULC
 
 from webserver import PythonWebServer
 from images import images as image
+from presenter.presenter import Presenter
 import lang.lang as LANG
 import tool.tools as tool
 
@@ -73,7 +74,7 @@ class Application(wx.App):
 class SplashScreen(wx.SplashScreen):
     global __sWebProcess
     def __init__(self):
-        showtime = 3000
+        showtime = 100
         wx.SplashScreen.__init__(self, image.app_splash.GetBitmap(),
                                  wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
                                  showtime, None, -1)
@@ -677,6 +678,7 @@ class MainWindow(wx.Frame):
         self.mainWindow()
         self.statusbar()
         self.toolbar()
+        self.presenter = Presenter(self)
 
     #主体窗口
     def mainWindow(self):
@@ -697,6 +699,10 @@ class MainWindow(wx.Frame):
         self.tb = AppToolBar(self)
         self.SetToolBar(self.tb)
         self.tb.SetOnToolClicked(self.__OnToolBarItemClick)
+
+    def AddTaskToProcessingList(self):
+        #TODO self.ulcTaskPanel.
+        pass
 
     # 工具栏点击处理
     def __OnToolBarItemClick(self, evt):
