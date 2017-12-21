@@ -7,13 +7,15 @@ class Task(object):
 
     __LOAD_UNIT__ = 100 #(MB)
 
-    __STATE_NEW__=0
-    __STATE_WAITING__=1
-    __STATE_PROCESSING__=2
-    __STATE_GENERATING__=3
-    __STATE_DONE__=4
+    __STATE_BASE__ = 0
+    __STATE_WAITING__= __STATE_BASE__ + 0
+    __STATE_PROCESSING__ = __STATE_BASE__ + 1
+    __STATE_PAUSED__ = __STATE_BASE__ + 2
+    __STATE_GENERATING__ = __STATE_BASE__ + 3
+    __STATE_DONE__= __STATE_BASE__ + 4
 
-    def __init__(self, log_path, src_path, state=__STATE_NEW__, create_time='', finish_seconds=0):
+
+    def __init__(self, log_path, src_path, state=__STATE_WAITING__, create_time='', finish_seconds=0):
         self.state=state
 
         # t = time.localtime(time.time())
@@ -38,6 +40,11 @@ class Task(object):
         #    return False
         #return self.name == other.name
 
+
+    #TODO
+    def __cmp__(self, other):
+        return 1
+
     def getLoad(self):
         #return 10
         if not self.load:
@@ -51,7 +58,7 @@ class Task(object):
 
 if __name__=="__main__":
     a = time.time()
-    task = Task("hah", Task.__STATE_NEW__, "/home/qinsw/pengtian/tmp/cmcc_monkey/", '')
+    task = Task("hah", Task.__STATE_WAITING__, "/home/qinsw/pengtian/tmp/cmcc_monkey/", '')
     task.getLoad()
 
     print  time.time() -a
