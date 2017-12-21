@@ -3533,7 +3533,7 @@ task_process = PyEmbeddedImage(
     "XkIta7LygnWqL/e/AG0buBF+hM67AAAAAElFTkSuQmCC")
 
 #----------------------------------------------------------------------
-task_start = PyEmbeddedImage(
+task_paused = PyEmbeddedImage(
     "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA3UlEQVQ4T72TwQ3CMAxF7YoL"
     "UsMMbMIKbEA5tr2QDdoNyoUzTAAjlA06gkeAcuJk3EKqqGpJKiRySqT42d/+RvjxoIlfHuo1"
     "Ap4ZoAScbSmekw/bBhwFsGmCmPkGEGSUhnsXxAI8Snms7IC2GkYtoGoM9BVgghgho1jlQxAv"

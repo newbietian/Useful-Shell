@@ -10,6 +10,7 @@ from images import images as image
 from presenter.presenter import Presenter
 import lang.lang as LANG
 import tool.tools as tool
+from task.task import Task
 
 USE_GENERIC = 0
 
@@ -222,8 +223,45 @@ class UlcTaskList(wx.Panel):
         # self.ulc.InsertImageStringItem(0, "haha", 0)
         # task.log_path
         # task state_
+        state = task.state
+        label = task.log_path
 
+        # 先插入item，并形成item，然后排序
+        if state == Task.__STATE_PROCESSING__:
+
+            pass
+        elif state == Task.__STATE_PAUSED__:
+            pass
+        elif state == Task.__STATE_GENERATING__:
+            pass
+        elif state == Task.__STATE_WAITING__:
+            pass
+
+
+        self.ulc.InsertImageItem()
+        #self.ulc.So
+
+    def UpdateTask(self, task, data):
         pass
+
+    def RemoveTask(self, task):
+        pass
+
+
+    # 1. process => paused => generating =>  waiting
+    # 2. process create time max => min
+    # 3. paused create time max => min
+    # 4. waiting create time min => max
+    # ps. generating stay
+    def OnCompareItems(self, item1, item2):
+        task1 = item1.GetPyData()
+        task2 = item2.GetPyData()
+        if task1.state == Task.__STATE_PROCESSING__:
+            if task2.state == Task.__STATE_PROCESSING__ \
+                    and task2.create_time:
+                pass
+            else:
+                return 1
 
 
     def OnItemSelected(self, event):
@@ -254,6 +292,13 @@ class UlcTaskList(wx.Panel):
         """Constructor"""
         wx.Panel.__init__(self, parent)
 
+        self._STATE_IMAGE_DICT_ = {
+            Task.__STATE_WAITING__: image.task_waiting.getBitmap(),
+            Task.__STATE_PROCESSING__: image.task_process.getBitmap(),
+            Task.__STATE_PAUSED__: image.task_paused.getBitmap(),
+            Task.__STATE_GENERATING__: image.task_generating
+        }
+
         try:
             font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
             boldfont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
@@ -263,10 +308,10 @@ class UlcTaskList(wx.Panel):
             boldfont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
 
         self.il = ULC.PyImageList(20, 20)
-        self.il.Add(image.task_process.getBitmap())
-        self.il.Add(image.task_start.getBitmap())
-        self.il.Add(image.task_waiting.getBitmap())
-        self.il.Add(image.task_done.getBitmap())
+        self.il.Add(self._STATE_IMAGE_DICT_[Task.__STATE_WAITING__]) #0
+        self.il.Add(self._STATE_IMAGE_DICT_[Task.__STATE_PROCESSING__]) #1
+        self.il.Add(self._STATE_IMAGE_DICT_[Task.__STATE_PAUSED__]) #2
+        self.il.Add(self._STATE_IMAGE_DICT_[Task.__STATE_GENERATING__]) #3
 
         self.ulc = ULC.UltimateListCtrl(self, agwStyle=wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES)
         self.ulc.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
