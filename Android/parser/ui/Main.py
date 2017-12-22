@@ -2,6 +2,7 @@
 import wx
 import os
 import time
+import random
 from multiprocessing import Process
 from wx.lib.agw import ultimatelistctrl as ULC
 
@@ -224,24 +225,37 @@ class UlcTaskList(wx.Panel):
         # task.log_path
         # task state_
         state = task.state
-        label = task.log_path
-
+        label1_text = task.log_path
+        label2_text = ''
         # 先插入item，并形成item，然后排序
+
+        index = self.ulc.GetItemCount()
+        self.ulc.InsertImageStringItem(index, label1_text, state)
+
+        state_item = self.ulc.GetItem(index, 1)
+
         if state == Task.__STATE_PROCESSING__:
-
-            pass
+            gauge = wx.Gauge(self.ulc, -1, size=(200, 20), style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)
+            gauge.SetValue(0)
+            state_item.SetWindow(gauge)
         elif state == Task.__STATE_PAUSED__:
-            pass
+            label2_text = "已暂停..."
         elif state == Task.__STATE_GENERATING__:
-            pass
+            label2_text = "结果生成中..."+str(time.time())
         elif state == Task.__STATE_WAITING__:
-            pass
+            label2_text = "等待中..."
+
+        state_item.SetText(label2_text)
+        self.ulc.SetItem(state_item)
+
+        self.ulc.SortItems(self.OnCompareItems)
+        self.ulc.Refresh()
 
 
-        self.ulc.InsertImageItem()
         #self.ulc.So
 
     def UpdateTask(self, task, data):
+
         pass
 
     def RemoveTask(self, task):
@@ -253,7 +267,16 @@ class UlcTaskList(wx.Panel):
     # 3. paused create time max => min
     # 4. waiting create time min => max
     # ps. generating stay
+
     def OnCompareItems(self, item1, item2):
+        print "OnCompareItems, item1 {0} item2 {1}".format(item1, item2)
+        #ran = int(random.uniform(-10,10))
+        #print "OnCompareItems :" , ran
+        return -1
+        # if item1.GetText()[0:1] == 'y':
+        #     return -1
+        # else:
+        #     return 1
         task1 = item1.GetPyData()
         task2 = item2.GetPyData()
         if task1.state == Task.__STATE_PROCESSING__:
@@ -296,7 +319,7 @@ class UlcTaskList(wx.Panel):
             Task.__STATE_WAITING__: image.task_waiting.getBitmap(),
             Task.__STATE_PROCESSING__: image.task_process.getBitmap(),
             Task.__STATE_PAUSED__: image.task_paused.getBitmap(),
-            Task.__STATE_GENERATING__: image.task_generating
+            Task.__STATE_GENERATING__: image.task_generating.getBitmap()
         }
 
         try:
@@ -339,7 +362,7 @@ class UlcTaskList(wx.Panel):
         self.ulc.SetColumnWidth(0, 600)
         self.ulc.SetColumnWidth(1, 200)
 
-        self.ulc.InsertImageStringItem(0, "haha", 0)
+        self.ulc.InsertImageStringItem(0, "yyyyyy", 0)
         # for i in range(10):
         #     index = self.ulc.InsertImageStringItem(i,
         #                                                     "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android",
@@ -393,6 +416,11 @@ class UlcTaskDoneList(wx.Panel):
         # task state_
         pass
 
+    def RemoveTask(self, task):
+        # task.log_path
+        # self.ulc.InsertImageStringItem(0, "haha", 0)
+        # task state_
+        pass
 
     def OnItemSelected(self, event):
         self.currentIndex = event.m_itemIndex
@@ -432,7 +460,7 @@ class UlcTaskDoneList(wx.Panel):
 
         self.il = ULC.PyImageList(20, 20)
         self.il.Add(image.task_process.getBitmap())
-        self.il.Add(image.task_start.getBitmap())
+        self.il.Add(image.task_paused.getBitmap())
         self.il.Add(image.task_waiting.getBitmap())
         self.il.Add(image.task_done.getBitmap())
 
@@ -723,7 +751,7 @@ class MainWindow(wx.Frame):
         self.mainWindow()
         self.statusbar()
         self.toolbar()
-        self.presenter = Presenter(self)
+        #self.presenter = Presenter(self)
 
     #主体窗口
     def mainWindow(self):
@@ -745,16 +773,31 @@ class MainWindow(wx.Frame):
         self.SetToolBar(self.tb)
         self.tb.SetOnToolClicked(self.__OnToolBarItemClick)
 
-    def AddTaskToProcessingList(self):
+    # interface for presenter
+    def AddTaskToProcessing(self, task):
         #TODO self.ulcTaskPanel.
-        pass
+        self.ulcTaskPanel.AddTask(task)
+
+    def RemoveTaskFromProcessing(self, task):
+        self.ulcTaskPanel.RemoveTask(task)
+
+    def UpdateTaskInProcessing(self, task):
+        self.ulcTaskPanel.UpdateTask(task)
+
+    def AddTaskToDone(self, task):
+        self.ulcTaskDonePanel.AddTask(task)
+
+    def RemoveTaskFromDone(self, task):
+        self.ulcTaskDonePanel.RemoveTask(task)
 
     # 工具栏点击处理
     def __OnToolBarItemClick(self, evt):
         print "__OnToolBarItemClick ", evt.GetId()
         id = evt.GetId()
         if id == AppToolBar.TOOL_NEW:
-            self.__DoNew()
+            #self.__DoNew()
+            task = Task("logpath", "srcPath", state=Task.__STATE_GENERATING__)
+            self.AddTaskToProcessing(task)
         elif id == AppToolBar.TOOL_CLEAN:
             self.__DoClean()
         elif id == AppToolBar.TOOL_HELP:
