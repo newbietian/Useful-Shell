@@ -2,6 +2,8 @@
 from tool.const import Const
 import sys
 
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 class Lang(object):
     __Lang = {
@@ -21,6 +23,23 @@ class Lang(object):
             "zh": "状态",
             "en": "Status"
         },
+        "task_state_processing": {
+            "zh": "处理中",
+            "en": "Processing"
+        },
+        "task_state_waiting": {
+            "zh": "等待中",
+            "en": "Waiting"
+        },
+        "task_state_generating": {
+            "zh": "生成结果中",
+            "en": "Generating result"
+        },
+        "task_state_paused": {
+            "zh": "未完成，重新开始 ",
+            "en": "Not Finished， Restart it, "
+        },
+
     }
     __LangType = 'zh'
 

@@ -216,50 +216,164 @@ class AppShowWindow(wx.SplitterWindow):
 
 
 # ------------------------------------------------------------------------------------------
+class MyUlcMainWindow(ULC.UltimateListMainWindow):
+    def OnCompareItems(self, line1, line2):
+        item = ULC.UltimateListItem()
+        item1 = line1.GetItem(0, item)
+        item = ULC.UltimateListItem()
+        item2 = line2.GetItem(0, item)
+
+        print item1.__hash__, item2.__hash__
+        data1 = item1.GetPyData()
+        data2 = item2.GetPyData()
+
+        print data1, data2
+        return -1
+
+        if self.__func:
+            return self.__func(data1, data2)
+        else:
+            return cmp(data1, data2)
+
+
+
+#-------------------------
+class MyUlc(ULC.UltimateListCtrl):
+    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=0, agwStyle=0, validator=wx.DefaultValidator, name="UltimateListCtrl"):
+        #super(MyUlc, self).__init__(parent, id, pos, size, style, agwStyle, validator, name)
+
+        self._imageListNormal = None
+        self._imageListSmall = None
+        self._imageListState = None
+
+        if not agwStyle & ULC.ULC_MASK_TYPE:
+            raise Exception("UltimateListCtrl style should have exactly one mode bit set")
+
+        if not (agwStyle & ULC.ULC_REPORT) and agwStyle & ULC.ULC_HAS_VARIABLE_ROW_HEIGHT:
+            raise Exception("Style ULC_HAS_VARIABLE_ROW_HEIGHT can only be used in report, non-virtual mode")
+
+        if agwStyle & ULC.ULC_STICKY_HIGHLIGHT and agwStyle & ULC.ULC_TRACK_SELECT:
+            raise Exception("Styles ULC_STICKY_HIGHLIGHT and ULC_TRACK_SELECT can not be combined")
+
+        if agwStyle & ULC.ULC_NO_HEADER and agwStyle & ULC.ULC_HEADER_IN_ALL_VIEWS:
+            raise Exception("Styles ULC_NO_HEADER and ULC_HEADER_IN_ALL_VIEWS can not be combined")
+
+        if agwStyle & ULC.ULC_USER_ROW_HEIGHT and (agwStyle & ULC.ULC_REPORT) == 0:
+            raise Exception("Style ULC_USER_ROW_HEIGHT can be used only with ULC_REPORT")
+
+        wx.PyControl.__init__(self, parent, id, pos, size, style | wx.CLIP_CHILDREN, validator, name)
+
+        self._mainWin = None
+        self._headerWin = None
+        self._footerWin = None
+
+        self._headerHeight = wx.RendererNative.Get().GetHeaderButtonHeight(self)
+        self._footerHeight = self._headerHeight
+
+        if wx.Platform == "__WXGTK__":
+            style &= ~wx.BORDER_MASK
+            style |= wx.BORDER_THEME
+        else:
+            if style & wx.BORDER_THEME:
+                style -= wx.BORDER_THEME
+
+        self._agwStyle = agwStyle
+        if style & wx.SUNKEN_BORDER:
+            style -= wx.SUNKEN_BORDER
+
+        self._mainWin = MyUlcMainWindow(self, wx.ID_ANY, wx.Point(0, 0), wx.DefaultSize, style, agwStyle)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self._mainWin, 1, wx.GROW)
+        self.SetSizer(sizer)
+
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
+
+        self.CreateOrDestroyHeaderWindowAsNeeded()
+        self.CreateOrDestroyFooterWindowAsNeeded()
+
+        self.SetInitialSize(size)
+        wx.CallAfter(self.Layout)
+
+
+# ------------------------------------------------------------------
 
 class UlcTaskList(wx.Panel):
     """"""
 
     def AddTask(self, task):
-        # self.ulc.InsertImageStringItem(0, "haha", 0)
-        # task.log_path
-        # task state_
-        state = task.state
-        label1_text = task.log_path
-        label2_text = ''
         # 先插入item，并形成item，然后排序
+        if task.state != Task.__STATE_WAITING__:
+            tool.log("AddTask.error", "Only task in waiting can ne added")
+            return
 
         index = self.ulc.GetItemCount()
-        self.ulc.InsertImageStringItem(index, label1_text, state)
+        self.ulc.InsertImageStringItem(index, task.log_path, task.state)
+
+        path_item = self.ulc.GetItem(index, 0)
+        path_item.SetPyData(task)
+        self.ulc.SetItem(path_item)
 
         state_item = self.ulc.GetItem(index, 1)
-
-        if state == Task.__STATE_PROCESSING__:
-            gauge = wx.Gauge(self.ulc, -1, size=(200, 20), style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)
-            gauge.SetValue(0)
-            state_item.SetWindow(gauge)
-        elif state == Task.__STATE_PAUSED__:
-            label2_text = "已暂停..."
-        elif state == Task.__STATE_GENERATING__:
-            label2_text = "结果生成中..."+str(time.time())
-        elif state == Task.__STATE_WAITING__:
-            label2_text = "等待中..."
-
-        state_item.SetText(label2_text)
+        if task.state == Task.__STATE_WAITING__:
+            state_item.SetText(LANG.task_state_waiting)
         self.ulc.SetItem(state_item)
 
-        self.ulc.SortItems(self.OnCompareItems)
+        self.ulc.SortItems()
         self.ulc.Refresh()
 
+    def UpdateTaskProgress(self, task, progress):
+        if task.state != Task.__STATE_PROCESSING__:
+            tool.log("UpdateTaskProgress.error", "Wrong State %d" % task.state)
+            raise Exception, "Wrong State %d" % task.state
 
-        #self.ulc.So
+        index = self.ulc.FindItem(-1, task.log_path)
+        print index
 
-    def UpdateTask(self, task, data):
+        if index != wx.NOT_FOUND:
+            state_item = self.ulc.GetItem(index, 1)
+            gauge = state_item.GetWindow()
+            gauge.SetValue(min(max(0, int(progress)), 100))
 
-        pass
+    def UpdateTaskState(self, task):
+        if task.state >= Task.__STATE_DONE__:
+            tool.log("UpdateTaskState.error", "Wrong State %d" % task.state)
+            raise Exception, "Wrong State %d" % task.state
+
+        index = self.ulc.FindItem(-1, task.log_path)
+
+        if index != wx.NOT_FOUND:
+            path_item = self.ulc.GetItem(index, 0)
+            path_item.SetImage(task.state)
+            path_item.SetPyData(task)
+            self.ulc.SetItem(path_item)
+
+            state_item = self.ulc.GetItem(index, 1)
+            #try:
+            if task.state == Task.__STATE_PROCESSING__:
+                state_item.SetText('')
+                gauge = wx.Gauge(self.ulc, -1, size=(200, 20), style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)
+                state_item.SetWindow(gauge)
+            elif task.state == Task.__STATE_PAUSED__:
+                state_item.DeleteWindow()
+                state_item.SetText(LANG.task_state_paused)
+            elif task.state == Task.__STATE_GENERATING__:
+                state_item.DeleteWindow()
+                state_item.SetText(LANG.task_state_generating)
+            #except Exception as e:
+                #tool.log("UpdateTaskState.error", e.message)
+            self.ulc.SetItem(state_item)
+
+
+            if self.ulc.GetItemCount() > 1:
+                self.ulc.SortItems()
+                self.ulc.Refresh()
 
     def RemoveTask(self, task):
         pass
+
 
 
     # 1. process => paused => generating =>  waiting
@@ -269,6 +383,7 @@ class UlcTaskList(wx.Panel):
     # ps. generating stay
 
     def OnCompareItems(self, item1, item2):
+        print item1, item2
         print "OnCompareItems, item1 {0} item2 {1}".format(item1, item2)
         #ran = int(random.uniform(-10,10))
         #print "OnCompareItems :" , ran
@@ -277,6 +392,7 @@ class UlcTaskList(wx.Panel):
         #     return -1
         # else:
         #     return 1
+
         task1 = item1.GetPyData()
         task2 = item2.GetPyData()
         if task1.state == Task.__STATE_PROCESSING__:
@@ -336,7 +452,7 @@ class UlcTaskList(wx.Panel):
         self.il.Add(self._STATE_IMAGE_DICT_[Task.__STATE_PAUSED__]) #2
         self.il.Add(self._STATE_IMAGE_DICT_[Task.__STATE_GENERATING__]) #3
 
-        self.ulc = ULC.UltimateListCtrl(self, agwStyle=wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES)
+        self.ulc = MyUlc(self, agwStyle=wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES)
         self.ulc.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
         self.Bind(ULC.EVT_LIST_ITEM_HYPERLINK, self.OnHyperTextClicked, self.ulc)
@@ -348,7 +464,7 @@ class UlcTaskList(wx.Panel):
         # 创建一个ULC list item
         info = ULC.UltimateListItem()
         # mask可以出现哪些形式的
-        info._mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT
+        info._mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT | ULC.ULC_MASK_PYDATA
         info._format = ULC.ULC_FORMAT_LEFT
         info._text = LANG.task_log_path
         self.ulc.InsertColumnInfo(0, info)
@@ -362,45 +478,13 @@ class UlcTaskList(wx.Panel):
         self.ulc.SetColumnWidth(0, 600)
         self.ulc.SetColumnWidth(1, 200)
 
-        self.ulc.InsertImageStringItem(0, "yyyyyy", 0)
-        # for i in range(10):
-        #     index = self.ulc.InsertImageStringItem(i,
-        #                                                     "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android",
-        #                                            0)
-        #     #self.ultimateList.InsertStringItem(i, "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android")
-        #     item = self.ulc.GetItem(i, 1)
-        #     if i < 3 :
-        #         self.gauge = wx.Gauge(self.ulc, -1, size=(200, 20), style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)
-        #         self.gauge.SetValue(20)
-        #         item.SetWindow(self.gauge)
-        #         self.ulc.SetItem(item)
-        #         self.ulc.SetStringItem(i, 1, "99%")
-        #     else:
-        #         self.ulc.SetStringItem(i, 1, "Waiting...")
-        #
+        #self.ulc.InsertImageStringItem(0, "yyyyyy", 0)
+
         # item = self.ulc.GetItem(5, 1)
         # item.SetHyperText(True)
         # s = "https://www.google.com.hk"
         # item.SetPyData(s)
         # self.ulc.SetItem(item)
-
-        #self.ultimateList.SetStringItem(0, 2, "Rock")
-
-        #self.ultimateList.InsertStringItem(1, "Puffy")
-        #self.ultimateList.SetStringItem(1, 1, "Bring It!")
-        #self.ultimateList.SetStringItem(1, 2, "Pop")
-
-        #self.ultimateList.InsertStringItem(2, "Family Force 5")
-        #self.ultimateList.SetStringItem(2, 1, "III")
-        #self.ultimateList.SetStringItem(2, 2, "Crunk")
-
-
-        #item = self.ultimateList.GetItem(1, 1)
-        #self.gauge = wx.Gauge(self.ultimateList, -1, size=(300,20),style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
-        #self.gauge.SetValue(20)
-        #item.SetWindow(self.gauge)
-        #self.ultimateList.SetItem(item)
-
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.ulc, 1, flag=wx.EXPAND)
@@ -774,15 +858,18 @@ class MainWindow(wx.Frame):
         self.tb.SetOnToolClicked(self.__OnToolBarItemClick)
 
     # interface for presenter
-    def AddTaskToProcessing(self, task):
+    def AddTaskToProcessPanel(self, task):
         #TODO self.ulcTaskPanel.
         self.ulcTaskPanel.AddTask(task)
 
+    def UpdateTaskProgress(self, task, progress):
+        self.ulcTaskPanel.UpdateTaskProgress(task, progress)
+
+    def UpdateTaskInProcessPanel(self, task):
+        self.ulcTaskPanel.UpdateTaskState(task)
+
     def RemoveTaskFromProcessing(self, task):
         self.ulcTaskPanel.RemoveTask(task)
-
-    def UpdateTaskInProcessing(self, task):
-        self.ulcTaskPanel.UpdateTask(task)
 
     def AddTaskToDone(self, task):
         self.ulcTaskDonePanel.AddTask(task)
@@ -796,8 +883,11 @@ class MainWindow(wx.Frame):
         id = evt.GetId()
         if id == AppToolBar.TOOL_NEW:
             #self.__DoNew()
-            task = Task("logpath", "srcPath", state=Task.__STATE_GENERATING__)
-            self.AddTaskToProcessing(task)
+            task = Task("yyyyyy", "srcPath", state=Task.__STATE_WAITING__)
+            self.AddTaskToProcessPanel(task)
+            task.state = Task.__STATE_PROCESSING__
+            self.UpdateTaskInProcessPanel(task)
+            self.UpdateTaskProgress(task, 20)
         elif id == AppToolBar.TOOL_CLEAN:
             self.__DoClean()
         elif id == AppToolBar.TOOL_HELP:

@@ -7,12 +7,12 @@ class Task(object):
 
     __LOAD_UNIT__ = 100 #(MB)
 
-    __STATE_BASE__ = 0
-    __STATE_WAITING__= __STATE_BASE__ + 0
-    __STATE_PROCESSING__ = __STATE_BASE__ + 1
-    __STATE_PAUSED__ = __STATE_BASE__ + 2
-    __STATE_GENERATING__ = __STATE_BASE__ + 3
-    __STATE_DONE__= __STATE_BASE__ + 4
+    _STATE_BASE__ = 0
+    __STATE_WAITING__= _STATE_BASE__ + 0
+    __STATE_PROCESSING__ = _STATE_BASE__ + 1
+    __STATE_PAUSED__ = _STATE_BASE__ + 2
+    __STATE_GENERATING__ = _STATE_BASE__ + 3
+    __STATE_DONE__= _STATE_BASE__ + 4
 
 
     def __init__(self, log_path, src_path, state=__STATE_WAITING__, create_time='', finish_seconds=0):
