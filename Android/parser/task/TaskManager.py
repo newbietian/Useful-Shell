@@ -64,6 +64,26 @@ class WaitingTaskQueue(TaskQueue):
         # 数据库操作，更新task的状态 => Waiting
         dbPresenter.UpdateTaskState(t.log_path, Task.__STATE_WAITING__)
 
+#-------------------------------------------------------------------------------
+class TaskListener(object):
+    '''
+        The task state and progress changed listener
+        Called By ParserManager
+        Realized By Presenter
+    '''
+    def OnTaskProgressChanged(self, task, progress):
+        '''
+        The callback called when task progress changed
+        :param task: target task for identity
+        :param progress: the progress of target task
+        '''
+
+    def OnTaskStateChanged(self, task):
+        '''
+        The callback called when task state changed
+        :param task: the target task
+        '''
+#-------------------------------------------------------------------------------
 
 class TaskManager(object):
 
@@ -133,6 +153,9 @@ class TaskManager(object):
                 pm = ParserManager(task)
                 pm.setProgressCallback(self._progressListener)
                 pm.execute()
+
+    def OnTaskStateChanged(self):
+        pass
 
     def OnTaskDone(self, id):
         self._processingQueue.removeById(id=id)

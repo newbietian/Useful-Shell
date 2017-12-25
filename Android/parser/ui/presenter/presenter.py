@@ -1,15 +1,46 @@
 #-*- coding=utf-8 -*-
 from task.TaskManager import TaskManager
+from task.TaskManager import TaskListener
 import dbPresenter
 
-# connect View and Model
 
+class UIActionInterface(object):
+    def AddTaskToProcessPanel(self, task):
+        '''
+        :param task: target task
+        '''
 
+    def UpdateTaskProgress(self, task, progress):
+        '''
+        Update the processing task progress
+        :param task: identity
+        :param progress: 1-100 integer
+        '''
+
+    def UpdateTaskInProcessPanel(self, task):
+        '''
+        :param task:
+        '''
+
+    def RemoveTaskFromProcessing(self, task):
+        '''
+        :param task:
+        '''
+
+    def AddTaskToDone(self, task):
+        '''
+        :param task:
+        '''
+
+    def RemoveTaskFromDone(self, task):
+        '''
+        :param task:
+        '''
 # ----------------------------------------------------------------------------------------------------
 
-class Presenter(object):
-    def __init__(self, window):
-        self.window = window
+class Presenter(TaskListener):
+    def __init__(self, ui):
+        self.ui = ui
         self.taskManager = TaskManager()
 
         # Interface with 2 args:
@@ -24,8 +55,9 @@ class Presenter(object):
         dbPresenter.InsertTask(task)
 
         # show in ui
-        # self.window.
+        self.ui.AddTaskToProcessPanel(task)
 
+        self.taskManager.start()
 
     def OnTaskInsertedListener(self, success, msg):
         if success:
@@ -33,10 +65,11 @@ class Presenter(object):
         else:
             tool.log("OnTaskInsertedListener.error", "Insert Error")
 
-    def OnTaskUpdatedListener(self):
+    # Called by ParserManager
+    def OnTaskStateChanged(self, task):
         pass
 
-    def OnTaskDeletedListener(self):
+    def OnTaskProgressChanged(self, task, progress):
         pass
 
 

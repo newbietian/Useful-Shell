@@ -8,7 +8,7 @@ from wx.lib.agw import ultimatelistctrl as ULC
 
 from webserver import PythonWebServer
 from images import images as image
-from presenter.presenter import Presenter
+from presenter.presenter import *
 import lang.lang as LANG
 import tool.tools as tool
 from task.task import Task
@@ -826,7 +826,7 @@ class AppNewTaskDialog(wx.Dialog):
 
 #---------------------------------------------------------------------------------------------
 #主框架
-class MainWindow(wx.Frame):
+class MainWindow(wx.Frame, UIActionInterface):
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, -1, LANG.app_name, size=(800,500))
         self.Centre()
@@ -858,8 +858,8 @@ class MainWindow(wx.Frame):
         self.tb.SetOnToolClicked(self.__OnToolBarItemClick)
 
     # interface for presenter
+    # --------------------------------------------------
     def AddTaskToProcessPanel(self, task):
-        #TODO self.ulcTaskPanel.
         self.ulcTaskPanel.AddTask(task)
 
     def UpdateTaskProgress(self, task, progress):
@@ -877,17 +877,26 @@ class MainWindow(wx.Frame):
     def RemoveTaskFromDone(self, task):
         self.ulcTaskDonePanel.RemoveTask(task)
 
+    #--------------------------------------------------
+
     # 工具栏点击处理
     def __OnToolBarItemClick(self, evt):
         print "__OnToolBarItemClick ", evt.GetId()
         id = evt.GetId()
         if id == AppToolBar.TOOL_NEW:
-            #self.__DoNew()
-            task = Task("yyyyyy", "srcPath", state=Task.__STATE_WAITING__)
+            # step1
+            if self.ulcTaskPanel.ulc.GetItemCount() <= 0:
+                task = Task("yyyyyy", "srcPath", state=Task.__STATE_WAITING__)
+            else:
+                task = Task("yyyyyy"+time.time(), "srcPath", state=Task.__STATE_WAITING__)
             self.AddTaskToProcessPanel(task)
+            # step2
             task.state = Task.__STATE_PROCESSING__
             self.UpdateTaskInProcessPanel(task)
+
+            # step3
             self.UpdateTaskProgress(task, 20)
+
         elif id == AppToolBar.TOOL_CLEAN:
             self.__DoClean()
         elif id == AppToolBar.TOOL_HELP:

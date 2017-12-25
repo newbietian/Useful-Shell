@@ -24,6 +24,7 @@ class ParserManager(object):
 
         if not task or not len(task.files) > 0:
             raise AttributeError, "Illegal task argument."
+        self.task = task
         # state of this manager whether task done
         self.running = True
         # wpipe is for send message from child process
@@ -32,6 +33,9 @@ class ParserManager(object):
         self.recvThread = threading.Thread(target=self.__receiver, args=(self.rpipe, ))
         self.recvThread.setDaemon(True)
         self.recvThread.start()
+
+        # thread for generator
+        self.genThread = None
 
         # pool must be create after os pipe
         self._pool = multiprocessing.Pool(processes=task.getLoad())
@@ -89,15 +93,18 @@ class ParserManager(object):
     # Run in different process
     # 此处是各进程间的回调， 运行在各自进程中
     # @Deprecated
-    def __progressCallback(self, path, percent):
-        # calculate current progress
-        self._progress_dict_[path] = percent
-        progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
-        # send progress to task manager
-        if self.pg_callback: self.pg_callback(progress)
+    # def __progressCallback(self, path, percent):
+    #     # calculate current progress
+    #     self._progress_dict_[path] = percent
+    #     progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
+    #     # send progress to task manager
+    #     if self.pg_callback: self.pg_callback(progress)
 
-    # receive from other process
     def __receiver(self, receiver):
+        '''
+        receive data from other process
+        :param receiver: a system pipe which can be used for receiving data from child processes
+        '''
         tool.log("start __receiver")
         while self.running:
             data = os.read(receiver, 256)
@@ -108,7 +115,7 @@ class ParserManager(object):
                 percent = float(m.group(2))
                 #print "pid = %d" % multiprocessing.current_process().pid, "path = %s" % path, percent
             else:
-                # TODO 某些时候， 会出现还没写入完成就被读走的情况， 一旦关键时刻发生，则会导致进度不是百分之百
+                # TODO 由于没有同步机制， 会出现还没写入完成就被读走的情况，仅作为一种大概的反馈
                 # __receiver.error : not formatted data : -30 (copy).log, percent: 0.209564000682
                 tool.log("__receiver.error", "not formatted data : %s" % data)
                 continue
@@ -150,7 +157,15 @@ class ParserManager(object):
         if self._file_finished_.value == len(self.file_path_list):
             print "Should remove duplicate result"
             print "Start thread to generate result"
+            self.genThread = threading.Thread(target=self.__start_generator, args=self._result_)
+            self.genThread.start()
 
+    def __start_generator(self, result):
+        '''
+        The target method for generator thread
+        :param result: the result we get after analysis
+        '''
+        # send the callback state
 
 def proxy(cls_instance, log, modules):
     return cls_instance.__run__(log, modules)
