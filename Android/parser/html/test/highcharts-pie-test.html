@@ -1,0 +1,150 @@
+<!--https://www.hcharts.cn/docs/basic-chart-->
+<!--https://api.hcharts.cn/highcharts#series<area>.data.events.click-->
+<!--https://code.hcharts.cn/highcharts/Zh5m1w-->
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Highcharts Example</title>
+
+		<style type="text/css">
+
+		</style>
+	</head>
+	<body>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+<div id="container" style="min-width: 310px; height: 400px; max-width: 600px; margin: 0 auto"></div>
+
+
+
+		<script type="text/javascript">
+
+Highcharts.chart('container', {
+    chart: {
+        plotBackgroundColor: null,
+        plotBorderWidth: null,
+        plotShadow: false,
+        type: 'pie'
+    },
+    title: {
+        text: 'Browser market shares January, 2015 to May, 2015'
+    },
+    tooltip: {
+        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+    },
+    plotOptions: {
+        pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+                enabled: true,
+                format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                style: {
+                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                }
+            },
+            events: {
+                click: function(event) {
+                    //allPrpos(event)
+                    //allPrpos(event.point.category)
+                    console.log("index = " + event.point.category)
+                    //console.log("index = " + this.index)
+                    //console.log("jhahahaha"+this.data[this.index].name)
+                }
+            }
+        }
+    },
+    colors: ['#7cb5ec'],
+    credits:{
+     enabled: false // 禁用版权信息
+    },
+    series: [{
+        name: 'Brands',
+        colorByPoint: true,
+        data: [{
+            name: 'IE',
+            y: 56.33,
+            events: {
+                click: function(event) {
+                    allPrpos(this)
+                    //console.log()
+                }
+            }
+        }, {
+            name: 'Chrome',
+            y: 24.03,
+            sliced: true,
+            selected: true,
+            events: {
+                click: function(event) {
+                    allPrpos(this)
+                    //console.log()
+                }
+            }
+        }, {
+            name: 'Firefox',
+            y: 10.38,
+            events: {
+                click: function(event) {
+                    allPrpos(this)
+                    //console.log()
+                }
+            }
+        }, {
+            name: 'Safari',
+            y: 4.77,
+            events: {
+                click: function(event) {
+                    allPrpos(this)
+                    //console.log()
+                }
+            }
+        }, {
+            name: 'Opera',
+            y: 0.91,
+            events: {
+                click: function(event) {
+                    allPrpos(this)
+                    //console.log()
+                }
+            }
+        }, {
+            name: 'Other',
+            y: 0.2,
+            events: {
+                click: function(event) {
+                    allPrpos(this)
+                    //console.log()
+                }
+            }
+        }]
+    }]
+});
+
+/*
+* 用来遍历指定对象所有的属性名称和值
+* obj 需要遍历的对象
+* author: Jet Mah
+*/
+function allPrpos ( obj ) {
+    // 用来保存所有的属性名称和值
+    var props = "" ;
+    // 开始遍历
+    for ( var p in obj ){
+        // 方法
+        if ( typeof ( obj [ p ]) == " function " ){
+            obj [ p ]() ;
+        } else {
+        // p 为属性名称，obj[p]为对应属性的值
+            props += p + " = " + obj [ p ] + " \t " ;
+        }
+    }
+    // 最后显示所有的属性
+    alert ( props ) ;
+}
+		</script>
+	</body>
+</html>
