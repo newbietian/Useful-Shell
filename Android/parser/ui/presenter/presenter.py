@@ -85,6 +85,7 @@ class Presenter(TaskListener):
         task = Task(log_path, src_path)
         # insert to db
         suc = dbPresenter.InsertTask(task)
+        print suc
         if not suc[0] and suc[1]:
             #self.ui.AddTaskFailed(task, suc[1])
             if mUI: mUI.AddTaskFailed(task, suc[1])
@@ -101,7 +102,7 @@ class Presenter(TaskListener):
     def onTaskStateChanged(self, task):
         if mUI:
             tool.log("onTaskStateChanged", mUI)
-            #wx.CallAfter(self.ui.UpdateTaskInProcessPanel(task))
+            # wx.CallAfter(self.ui.UpdateTaskInProcessPanel(task))
             wx.CallAfter(mUI.UpdateTaskInProcessPanel(task))
 
     def onTaskProgressChanged(self, task, progress):

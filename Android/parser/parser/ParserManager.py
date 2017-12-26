@@ -5,6 +5,7 @@ import os
 import re
 
 from parser.Parser import *
+from parser.Parser import __M_ANR__, __M_JAVA__, __M_NATIVE__
 import tool.tools as tool
 from task.task import Task
 
@@ -46,7 +47,7 @@ class ParserManager(object):
         # self.modules = modules
         self.file_path_list = task.files
         self.src_path = task.src_path
-        self.modules = ()
+        self.modules = (__M_JAVA__, __M_NATIVE__, __M_ANR__)
 
 
         # dict for collect the progress in sub processes
@@ -69,6 +70,7 @@ class ParserManager(object):
         print multiprocessing.current_process().pid
         for file_path in self.file_path_list:
             # start a process and do job
+            print file_path
             self._pool.apply_async(proxy, (self, file_path, self.modules), callback=self.__callback)
         self._pool.close()
 
@@ -79,7 +81,7 @@ class ParserManager(object):
         :param modules: the modules we care
         :return: the parse result we get
         """
-        # print multiprocessing.current_process().pid
+        #print multiprocessing.current_process().pid
         tool.log("__start_one_parser", log_path)
         parser = Parser(log_path, modules)
         parser.set_pipe_sender(self.wpipe)
@@ -144,16 +146,20 @@ class ParserManager(object):
         :param result: from parser
         '''
 
-        print "pri finished", self._file_finished_.value
+        print "pri finished222", self._file_finished_.value
         self._file_finished_.value = self._file_finished_.value + 1
         print "all", len(self.file_path_list)
         print "finished", self._file_finished_.value
 
         #print "before:", self._result_
         # TODO 将各个进程的结果汇总
-        for m in self.modules:
-            if len(result[m]) > 0:
-                self._result_[m]+=result[m]
+        try:
+            for m in self.modules:
+                if len(result[m]) > 0:
+                    self._result_[m]+=result[m]
+        except Exception as e:
+            print "exception in callback = ", e.message
+        #print
         #print "after:", self._result_
 
         # TODO 去重
@@ -162,6 +168,7 @@ class ParserManager(object):
         #progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
         #print "self._progress_ = ", progress
         #if progress >= 1.0:
+        print "self._file_finished_.value",self._file_finished_.value
         if self._file_finished_.value == len(self.file_path_list):
             print "Should remove duplicate result"
             print "Start thread to generate result"
@@ -170,7 +177,7 @@ class ParserManager(object):
             if self.task_listener:
                 self.task_listener.onTaskStateChanged(self.task)
 
-            self.genThread = threading.Thread(target=self.__start_generator, args=self._result_)
+            self.genThread = threading.Thread(target=self.__start_generator, args=(self._result_,))
             self.genThread.start()
 
     def __start_generator(self, result):
@@ -179,7 +186,7 @@ class ParserManager(object):
         :param result: the result we get after analysis
         '''
         # send the callback state
-        pass
+        print result
 
 def proxy(cls_instance, log, modules):
     return cls_instance.__run__(log, modules)

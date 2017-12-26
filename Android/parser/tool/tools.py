@@ -138,7 +138,12 @@ def log(tag, message=''):
     if message == '':
         message = tag
         tag = def_tag
-    print str(tag),":",str(message)
+    timestamp =  time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    strall = timestamp + str(tag) + ":" + str(message)
+    print strall
+    fd = open(getAppDataPath()+"log.txt", "a")
+    fd.write(strall)
+    fd.close()
 
 class Preference(object):
     '''Single instance class for save Preference'''

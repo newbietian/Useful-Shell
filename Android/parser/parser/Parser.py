@@ -42,7 +42,7 @@ class Parser(object):
         self.log_path = log_path
         # TODO
         # self.modules = modules
-        self.modules = (__M_JAVA__, __M_NATIVE__)
+        self.modules = modules
         self.searcher = StringPattern()
 
         self.log_size = float(tool.getFileSize(log_path))
@@ -120,6 +120,7 @@ class Parser(object):
                 os.write(self.sender, "path: {0}, percent: {1}".format(self.log_path, percent))
 
         #print "len(all_module_results[__M_JAVA__])", len(all_module_results[__M_JAVA__])
+        print all_module_results
         return all_module_results
 
 if __name__ == "__main__":
