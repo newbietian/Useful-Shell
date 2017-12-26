@@ -8,28 +8,28 @@ from task.task import Task
 def InsertTask(task):
     sql = "INSERT INTO history (log_path, src_path, state) VALUES (?, ?, ?)"
     args=(task.log_path, task.src_path, task.state)
-    dbHelper.insert(sql, args)
+    return dbHelper.insert(sql, args)
 
 # ---------------------
 def DeleteAll():
     sql = "DELETE FROM history"
-    dbHelper.delete(sql)
+    return dbHelper.delete(sql)
 
 def DeleteOne(log_path):
     sql = "DELETE FROM history WHERE log_path = ?"
     args = (log_path, )
-    dbHelper.delete(sql, args)
+    return dbHelper.delete(sql, args)
 
 # ---------------------
 def UpdateTaskResultPath(log_path, path):
     sql = "UPDATE history SET result_path = ? WHERE log_path = ?"
     args = (path, log_path)
-    dbHelper.update(sql, args)
+    return dbHelper.update(sql, args)
 
 def UpdateTaskState(log_path, new_state):
     sql = "UPDATE history SET state = ? WHERE log_path = ?"
     args = (new_state, log_path)
-    dbHelper.update(sql, args)
+    return dbHelper.update(sql, args)
 
 # ---------------------
 def SelectALLTask():
@@ -52,14 +52,14 @@ def SelectDoneTask():
     return dbHelper.select(sql, args)
 
 # ---------------------
-def AddInsertedListener(callback):
-    dbHelper.addInsertedListener(callback)
-
-def AddDeletedListener(callback):
-    dbHelper.addDeletedListener(callback)
+# def AddInsertedListener(callback):
+#     dbHelper.addInsertedListener(callback)
+#
+# def AddDeletedListener(callback):
+#     dbHelper.addDeletedListener(callback)
 
 #def addSelectedListener(callback):
 #    dbHelper.addSelectedListener(callback)
 
-def AddUpdatedListener(callback):
-    dbHelper.addUpdatedListener(callback)
+# def AddUpdatedListener(callback):
+#     dbHelper.addUpdatedListener(callback)

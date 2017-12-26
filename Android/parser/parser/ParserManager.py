@@ -1,10 +1,13 @@
 # coding=utf-8
 import multiprocessing
 import threading
-from parser.Parser import *
-import tool.tools as tool
 import os
 import re
+
+from parser.Parser import *
+import tool.tools as tool
+from task.task import Task
+
 
 class ParserManager(object):
 
@@ -56,8 +59,10 @@ class ParserManager(object):
         for m in self.modules:
             self._result_[m] = []
 
-    def setProgressCallback(self, cb):
-        self.pg_callback = cb
+        self.task_listener = None
+
+    def setTaskListener(self, tl):
+        self.task_listener = tl
 
     def execute(self):
         '''Do job entry'''
@@ -122,11 +127,14 @@ class ParserManager(object):
 
             # calculate current progress
             self._progress_dict_[path] = percent
+            # float
             progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
+            # int
+            progress = int(progress * 100)
+            print progress
 
             # send progress to task manager
-            # TODO 需要用name作为标识
-            if self.pg_callback: self.pg_callback(progress)
+            if self.task_listener: self.task_listener.onTaskProgressChanged(self.task, progress)
 
     # TODO 在这儿做外部去重
     # 此处是各进程调用回调返回参数处， 运行在主UI进程中
@@ -157,6 +165,11 @@ class ParserManager(object):
         if self._file_finished_.value == len(self.file_path_list):
             print "Should remove duplicate result"
             print "Start thread to generate result"
+            # callback
+            self.task.state = Task.__STATE_GENERATING__
+            if self.task_listener:
+                self.task_listener.onTaskStateChanged(self.task)
+
             self.genThread = threading.Thread(target=self.__start_generator, args=self._result_)
             self.genThread.start()
 
@@ -166,6 +179,7 @@ class ParserManager(object):
         :param result: the result we get after analysis
         '''
         # send the callback state
+        pass
 
 def proxy(cls_instance, log, modules):
     return cls_instance.__run__(log, modules)

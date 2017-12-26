@@ -9,6 +9,7 @@ from wx.lib.agw import ultimatelistctrl as ULC
 from webserver import PythonWebServer
 from images import images as image
 from presenter.presenter import *
+from presenter import presenter as PRESENTER
 import lang.lang as LANG
 import tool.tools as tool
 from task.task import Task
@@ -835,7 +836,9 @@ class MainWindow(wx.Frame, UIActionInterface):
         self.mainWindow()
         self.statusbar()
         self.toolbar()
-        #self.presenter = Presenter(self)
+
+        self.presenter = Presenter()
+        PRESENTER.setUI(self)
 
     #主体窗口
     def mainWindow(self):
@@ -862,10 +865,14 @@ class MainWindow(wx.Frame, UIActionInterface):
     def AddTaskToProcessPanel(self, task):
         self.ulcTaskPanel.AddTask(task)
 
+    def AddTaskFailed(self, task, msg):
+        print task, msg
+
     def UpdateTaskProgress(self, task, progress):
         self.ulcTaskPanel.UpdateTaskProgress(task, progress)
 
     def UpdateTaskInProcessPanel(self, task):
+        tool.log("UpdateTaskInProcessPanel", task)
         self.ulcTaskPanel.UpdateTaskState(task)
 
     def RemoveTaskFromProcessing(self, task):
@@ -885,17 +892,18 @@ class MainWindow(wx.Frame, UIActionInterface):
         id = evt.GetId()
         if id == AppToolBar.TOOL_NEW:
             # step1
-            if self.ulcTaskPanel.ulc.GetItemCount() <= 0:
-                task = Task("yyyyyy", "srcPath", state=Task.__STATE_WAITING__)
-            else:
-                task = Task("yyyyyy"+time.time(), "srcPath", state=Task.__STATE_WAITING__)
-            self.AddTaskToProcessPanel(task)
-            # step2
-            task.state = Task.__STATE_PROCESSING__
-            self.UpdateTaskInProcessPanel(task)
-
-            # step3
-            self.UpdateTaskProgress(task, 20)
+            # if self.ulcTaskPanel.ulc.GetItemCount() <= 0:
+            #     task = Task("yyyyyy", "srcPath", state=Task.__STATE_WAITING__)
+            # else:
+            #     task = Task("yyyyyy"+time.time(), "srcPath", state=Task.__STATE_WAITING__)
+            # self.AddTaskToProcessPanel(task)
+            # # step2
+            # task.state = Task.__STATE_PROCESSING__
+            # self.UpdateTaskInProcessPanel(task)
+            #
+            # # step3
+            # self.UpdateTaskProgress(task, 20)
+            self.__DoNew()
 
         elif id == AppToolBar.TOOL_CLEAN:
             self.__DoClean()
@@ -919,6 +927,7 @@ class MainWindow(wx.Frame, UIActionInterface):
             print "dlg.LogPath %s" % dlg.LogPath
             print "dlg.SrcPath %s" % dlg.SrcPath
             #TODO presenter
+            self.presenter.CreateTask(dlg.LogPath, dlg.SrcPath)
             print "You pressed OK\n"
         else:
             print "You pressed Cancel\n"

@@ -41,7 +41,7 @@ def insert(sql, args=()):
     if sql is None or sql == '':
         __notifyInsert(False, "sql is null")
         __tool.log("select.error", "sql is null")
-        return False
+        return False,
     tryCreateTables()
     db = sqlite3.connect(__getDbPath())
     cursor = db.cursor()
@@ -55,12 +55,13 @@ def insert(sql, args=()):
         __notifyInsert(True)
 
         __tool.log("sqlite3.insert success", sql + str(args))
-        return True
+        return True,
     except sqlite3.IntegrityError as e:
         __notifyInsert(False, e.message)
 
         __tool.log("sqlite3.IntegrityError", e.message)
         return False, e.message
+        #return False
     finally:
         db.close()
 
@@ -122,7 +123,7 @@ def delete(sql, args=()):
     if sql is None or sql == '':
         __notifyDeleted(False, "sql is null")
         __tool.log("delete.error", "sql is null")
-        return
+        return False,
     tryCreateTables()
     db = sqlite3.connect(__getDbPath())
     cursor = db.cursor()
@@ -131,11 +132,12 @@ def delete(sql, args=()):
         db.commit()
 
         __notifyDeleted(True)
-        return True
+        return True,
     except Exception as e:
         __notifyDeleted(False, e.message)
         __tool.log("delete.error", e.message)
-        return False
+        return False, e.message
+        #return False
     finally:
         db.close()
 
@@ -160,7 +162,7 @@ def update(sql, args=()):
     if sql is None or sql == '':
         __notifyUpdated(False, "sql is null")
         __tool.log("update", "sqlite is null")
-        return False
+        return False,
     tryCreateTables()
     db = sqlite3.connect(__getDbPath())
     cursor = db.cursor()
@@ -171,12 +173,13 @@ def update(sql, args=()):
         __notifyUpdated(True)
 
         __tool.log("sqlite3.update", sql + str(args) + " success")
-        return True
+        return True,
     except sqlite3.IntegrityError as e:
         __notifyUpdated(False, e.message)
 
         __tool.log("update.IntegrityError", e.message)
         return False, e.message
+        #return False
     finally:
         db.close()
 

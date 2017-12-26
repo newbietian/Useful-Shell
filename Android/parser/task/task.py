@@ -2,7 +2,6 @@
 import time
 import tool.tools as tool
 
-
 class Task(object):
 
     __LOAD_UNIT__ = 100 #(MB)
@@ -48,9 +47,10 @@ class Task(object):
     def getLoad(self):
         #return 10
         if not self.load:
-            # TODO 1 需要去除文件夹中不需要解析的文件，再求合
-            # TODO 2 self.load = min(load_cal, files_count)
+            #  1 需要去除文件夹中不需要解析的文件，再求合
+            #  2 self.load = min(load_cal, files_count)
             self.files = file_list = tool.getParseableFileList(self.log_path)
+            tool.log("getLoad", self.files)
             self.load = tool.getFilesSizeMB(file_list) / Task.__LOAD_UNIT__ + 1
             self.load = min(self.load, len(file_list))
         return self.load

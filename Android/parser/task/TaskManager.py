@@ -57,12 +57,13 @@ class WaitingTaskQueue(TaskQueue):
         super(WaitingTaskQueue, self).__init__()
 
     def put(self, t):
-        if type(t) is Task:
+        p=False
+        if type(t) is Task and t.state != Task.__STATE_WAITING__:
             t.state = Task.__STATE_WAITING__
+            # 数据库操作，更新task的状态 => Waiting
+            p = dbPresenter.UpdateTaskState(t.log_path, Task.__STATE_WAITING__)
         super(WaitingTaskQueue, self).put(t)
-
-        # 数据库操作，更新task的状态 => Waiting
-        dbPresenter.UpdateTaskState(t.log_path, Task.__STATE_WAITING__)
+        return p
 
 #-------------------------------------------------------------------------------
 class TaskListener(object):
@@ -71,14 +72,14 @@ class TaskListener(object):
         Called By ParserManager
         Realized By Presenter
     '''
-    def OnTaskProgressChanged(self, task, progress):
+    def onTaskProgressChanged(self, task, progress):
         '''
         The callback called when task progress changed
         :param task: target task for identity
         :param progress: the progress of target task
         '''
 
-    def OnTaskStateChanged(self, task):
+    def onTaskStateChanged(self, task):
         '''
         The callback called when task state changed
         :param task: the target task
@@ -101,7 +102,6 @@ class TaskManager(object):
     _processingQueue = None
     _task_handler = None
     _running = False
-    _progressListener = None
 
     def __new__(cls, *args, **kwargs):
         if not cls.instance:
@@ -112,6 +112,7 @@ class TaskManager(object):
             cls._task_handler = None
         return cls.instance
 
+    # public
     def start(self):
         if not self._task_handler:
             self._task_handler = threading.Thread(target=self._handle_tasks)
@@ -119,6 +120,21 @@ class TaskManager(object):
 
     def addTask(self, task):
         self._waitingQueue.put(task)
+
+    #def onTaskDone(self, id):
+    #    self._processingQueue.removeById(id=id)
+
+    def close(self):
+        self._running = False
+        self._waitingQueue = None
+        self._processingQueue = None
+        self._task_handler = None
+        self.instance = None
+
+    def setTaskListener(self, listener):
+        self._task_listener = listener
+
+    # private
 
     def _handle_tasks(self):
         tool.log("_handle_tasks", "start")
@@ -140,36 +156,25 @@ class TaskManager(object):
 
                     # 启动进程池执行任务
                     pm = ParserManager(task)
-                    pm.setProgressCallback(self._progressListener)
+                    if self._task_listener:
+                        pm.setTaskListener(self._task_listener)
                     pm.execute()
                     tool.log("start ParserManager 1")
                 else:
                     tool.log("_handle_task", "please hold on")
             else:
                 task = self._waitingQueue.get()
+                task.getLoad()
                 self._processingQueue.put(task)
+
+                self._task_listener.onTaskStateChanged(task)
 
                 # 启动进程池执行任务
                 pm = ParserManager(task)
-                pm.setProgressCallback(self._progressListener)
+                if self._task_listener:
+                    pm.setTaskListener(self._task_listener)
+                tool.log("ParserManager", "tagggggggggggggggg")
                 pm.execute()
-
-    def OnTaskStateChanged(self):
-        pass
-
-    def OnTaskDone(self, id):
-        self._processingQueue.removeById(id=id)
-
-    def close(self):
-        self._running = False
-        self._waitingQueue = None
-        self._processingQueue = None
-        self._task_handler = None
-        self.instance = None
-
-    def SetProgressListener(self, listener):
-        self._progressListener = listener
-
 
 
 

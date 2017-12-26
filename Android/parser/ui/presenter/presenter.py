@@ -1,13 +1,22 @@
 #-*- coding=utf-8 -*-
 from task.TaskManager import TaskManager
 from task.TaskManager import TaskListener
+from task.task import Task
+import tool.tools as tool
 import dbPresenter
+import wx
 
 
 class UIActionInterface(object):
     def AddTaskToProcessPanel(self, task):
         '''
         :param task: target task
+        '''
+
+    def AddTaskFailed(self, task, msg):
+        '''
+        Error occurred in insert db
+        :param task:
         '''
 
     def UpdateTaskProgress(self, task, progress):
@@ -37,43 +46,69 @@ class UIActionInterface(object):
         :param task:
         '''
 # ----------------------------------------------------------------------------------------------------
+mUI = None
+
+def setUI(ui):
+    global mUI
+    mUI = ui
+
+def getUI():
+    global mUI
+    return mUI
 
 class Presenter(TaskListener):
-    def __init__(self, ui):
-        self.ui = ui
+    def __init__(self):
+        #self.ui = ui
         self.taskManager = TaskManager()
+        self.taskManager.setTaskListener(self)
+        self.taskManager.start()
 
         # Interface with 2 args:
-        dbPresenter.AddInsertedListener(self.OnTaskDeletedListener)
-        dbPresenter.AddUpdatedListener(self.OnTaskUpdatedListener)
-        dbPresenter.AddDeletedListener(self.OnTaskDeletedListener)
+        # dbPresenter.AddInsertedListener(self.OnTaskDeletedListener)
+        # dbPresenter.AddUpdatedListener(self.OnTaskUpdatedListener)
+        # dbPresenter.AddDeletedListener(self.OnTaskDeletedListener)
 
-    # called for ui
+    # def __getstate__(self):
+    #     '''
+    #     PicklingError: Can't pickle <type 'PySwigObject'>: attribute lookup __builtin__.PySwigObject failed
+    #     wxPython中，ui类型的object不能被其他进程共享
+    #     '''
+    #     self_dict = self.__dict__.copy()
+    #     del self_dict['ui']
+    #     return self_dict
+
+    #def __call__(self, *args, **kwargs):
+    #    pass
+
+    # called by ui
     def CreateTask(self, log_path, src_path=''):
         task = Task(log_path, src_path)
         # insert to db
-        dbPresenter.InsertTask(task)
+        suc = dbPresenter.InsertTask(task)
+        if not suc[0] and suc[1]:
+            #self.ui.AddTaskFailed(task, suc[1])
+            if mUI: mUI.AddTaskFailed(task, suc[1])
+            return
 
         # show in ui
-        self.ui.AddTaskToProcessPanel(task)
+        #self.ui.AddTaskToProcessPanel(task)
+        if mUI: mUI.AddTaskToProcessPanel(task)
 
-        self.taskManager.start()
-
-    def OnTaskInsertedListener(self, success, msg):
-        if success:
-            pass
-        else:
-            tool.log("OnTaskInsertedListener.error", "Insert Error")
+        # put into task manager
+        self.taskManager.addTask(task)
 
     # Called by ParserManager
-    def OnTaskStateChanged(self, task):
-        pass
+    def onTaskStateChanged(self, task):
+        if mUI:
+            tool.log("onTaskStateChanged", mUI)
+            #wx.CallAfter(self.ui.UpdateTaskInProcessPanel(task))
+            wx.CallAfter(mUI.UpdateTaskInProcessPanel(task))
 
-    def OnTaskProgressChanged(self, task, progress):
-        pass
-
-
-
+    def onTaskProgressChanged(self, task, progress):
+        if mUI:
+            tool.log("onTaskProgressChanged", mUI)
+            #wx.CallAfter(self.ui.UpdateTaskProgress(task, progress))
+            wx.CallAfter(mUI.UpdateTaskProgress(task, progress))
 
 
 
