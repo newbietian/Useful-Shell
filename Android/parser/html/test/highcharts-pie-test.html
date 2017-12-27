@@ -6,34 +6,36 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Highcharts Example</title>
-
-		<style type="text/css">
-
-		</style>
+		<title id="head_title"></title>
+		<style type="text/css"></style>
+		<link rel='icon'  href='overview.ico'  type=‘image/x-ico’  />
 	</head>
 	<body>
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="overview_data.js"></script>
 
-<div id="container" style="min-width: 310px; height: 400px; max-width: 600px; margin: 0 auto"></div>
+<div id="container"
+	 style="min-width: 800px;
+ 			min-height: 450px;
+ 			max-width: 1366px;
+ 			max-height: 768px;
+ 			marginTop: 100 auto">
+</div>
 
+<script type="text/javascript">
+var head_title=document.getElementById("head_title");
+head_title.innerHTML = Overview.head_title
 
-
-		<script type="text/javascript">
-
-Highcharts.chart('container', {
+var pieChart = Highcharts.chart('container', {
     chart: {
         plotBackgroundColor: null,
         plotBorderWidth: null,
         plotShadow: false,
         type: 'pie'
     },
-    title: {
-        text: 'Browser market shares January, 2015 to May, 2015'
-    },
     tooltip: {
-        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+        pointFormat: '{series.name}: <b>{point.y}</b>'
     },
     plotOptions: {
         pie: {
@@ -41,89 +43,45 @@ Highcharts.chart('container', {
             cursor: 'pointer',
             dataLabels: {
                 enabled: true,
-                format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                format: '<b>{point.name}</b>: {point.y}',
                 style: {
                     color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
-                }
-            },
-            events: {
-                click: function(event) {
-                    //allPrpos(event)
-                    //allPrpos(event.point.category)
-                    console.log("index = " + event.point.category)
-                    //console.log("index = " + this.index)
-                    //console.log("jhahahaha"+this.data[this.index].name)
                 }
             }
         }
     },
-    colors: ['#7cb5ec'],
+    colors: ['#ff5722', '#3f51b5', '#f15c80', '#00bcd4', '#009688', '#607d8b'],
     credits:{
-     enabled: false // 禁用版权信息
-    },
-    series: [{
-        name: 'Brands',
-        colorByPoint: true,
-        data: [{
-            name: 'IE',
-            y: 56.33,
-            events: {
-                click: function(event) {
-                    allPrpos(this)
-                    //console.log()
-                }
-            }
-        }, {
-            name: 'Chrome',
-            y: 24.03,
-            sliced: true,
-            selected: true,
-            events: {
-                click: function(event) {
-                    allPrpos(this)
-                    //console.log()
-                }
-            }
-        }, {
-            name: 'Firefox',
-            y: 10.38,
-            events: {
-                click: function(event) {
-                    allPrpos(this)
-                    //console.log()
-                }
-            }
-        }, {
-            name: 'Safari',
-            y: 4.77,
-            events: {
-                click: function(event) {
-                    allPrpos(this)
-                    //console.log()
-                }
-            }
-        }, {
-            name: 'Opera',
-            y: 0.91,
-            events: {
-                click: function(event) {
-                    allPrpos(this)
-                    //console.log()
-                }
-            }
-        }, {
-            name: 'Other',
-            y: 0.2,
-            events: {
-                click: function(event) {
-                    allPrpos(this)
-                    //console.log()
-                }
-            }
-        }]
-    }]
+     enabled: false  // 禁用版权信息
+    }
 });
-
+//chart title
+pieChart.title.update({ text: Overview.chart_title })
+//chart series data
+var series1 = {
+	name: 'Overview',
+	colorByPoint: true,
+	data: []
+}
+for(var i = 0; i < Overview.chart_data.length; i++) {
+	console.log("i = " + i)
+	var node = {}
+	node['name'] = Overview.chart_data[i].name
+	node['y'] = Overview.chart_data[i].y
+	node['link'] = Overview.chart_data[i].link
+	node['events'] = {
+		click: function(event) {
+			window.open(Overview.chart_data[this.index].link)
+		}
+	}
+	if (i == 0) {
+		node['sliced'] = true
+		node['selected'] = true
+	}
+	series1.data.push(node)
+}
+console.log(series1.data.length)
+pieChart.addSeries(series1)
 /*
 * 用来遍历指定对象所有的属性名称和值
 * obj 需要遍历的对象
