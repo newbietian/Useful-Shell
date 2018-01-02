@@ -32,8 +32,12 @@ data = {
   ]
 }
 
-print os.getcwd()
-with open(os.getcwd() + "../tmp/record.json", "w") as f:
+overview_json = "../tmp/overview_data.json"
+
+with open(overview_json, "a") as f:
+    f.write("var Overview = ")
     json.dump(data, f, sort_keys=True, indent=2)
     f.close()
+overview_js = "../tmp/overview_data.js"
+os.system("mv " + '"' + overview_json + '"' + " " + '"' + overview_js + '"')
 
