@@ -18,5 +18,7 @@ Useful shell for work
     <font size=1>批量添加或删除 SMS/MMS/Calls/Bookmarks/Contacts，选择后点击Generate</font><br>
 [4、CPU-Z-显示各种硬件和系统信息.apk](https://github.com/Bravest-Ptt/Useful-Shell/blob/master/Android/CPU-Z-%E6%98%BE%E7%A4%BA%E5%90%84%E7%A7%8D%E7%A1%AC%E4%BB%B6%E5%92%8C%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF.apk) | [CPU间谍-显示开机时长-CPU状态和内核信息.apk](https://github.com/Bravest-Ptt/Useful-Shell/blob/master/Android/CPU%E9%97%B4%E8%B0%8D-%E6%98%BE%E7%A4%BA%E5%BC%80%E6%9C%BA%E6%97%B6%E9%95%BF-CPU%E7%8A%B6%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E4%BF%A1%E6%81%AF.apk)<br>
     <font size=1>CPU-Z更强大，显示Soc、Device、System、Battery、Thermal、Sensors等信息</font><br>
+[5、Rec.-录屏工具.apk](https://github.com/Bravest-Ptt/Useful-Shell/blob/master/Android/Rec.-%E5%BD%95%E5%B1%8F%E5%B7%A5%E5%85%B7.apk)<br>
+    <font size=1>Android录屏工具这个就够了，支持Size、Bit rate、Duration、Audio、Filename等选项</font><br>
     
 ## Windows
