@@ -25,4 +25,7 @@ Useful shell for work
     <font size=1>Android录屏工具这个就够了，支持Size、Bit rate、Duration、Audio、Filename等选项</font><br>
 [6、Android Button Maker](http://angrytools.com/android/button/)<br>
     <font size=1>简便的Android按钮制作工具，支持代码生成，效果展示，实时更新数据</font><br>
+[7、svg2android](https://github.com/inloop/svg2android)<br>
+    <font size=1>将svg图片转为android可VectorDrawable</font><br>
+
 ## Windows
