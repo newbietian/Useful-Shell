@@ -1,11 +1,8 @@
 # coding=utf-8
 import multiprocessing
 import threading
-import threadpool
 import os
 import re
-
-from Queue import Queue
 
 from parser.Parser import *
 from parser.Parser import __M_ANR__, __M_JAVA__, __M_NATIVE__
@@ -13,50 +10,50 @@ import tool.tools as tool
 from task.task import Task
 
 
-class NullError(Exception):
-    """空指针错误"""
-
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
 class ParserManager(object):
 
-    """ ParserManager通过多线程来实现任务的后台执行。
-        PS： 以前是多进程，但和ui交互困难~， 多进程的未完成实现见old/ParserManager_Process.py
-    """
+    '''
+        Single Instance
+    '''
 
+    class ArgumentError(Exception): pass
+
+    # parsers, file_path_list, modules=()
     def __init__(self, task):
-        """ 构造方法
-            :param task: 包含此解析任务的信息
-        """
+        '''
+        :param parsers: the number of the pool processes
+        :param file_path_list: the log list this manager to parser
+        :param modules: the modules we want to get. e.g Parser.__M_JAVA__
+        '''
+
         if not task or not len(task.files) > 0:
-            raise NullError("Illegl task argument.")
+            raise AttributeError, "Illegal task argument."
         self.task = task
-        # 表明处理状态， True正在处理， False完成处理或其他情况
+        # state of this manager whether task done
         self.running = True
+        # wpipe is for send message from child process
+        # rpipe is for recv message in Main process
+        self.rpipe, self.wpipe = os.pipe()
+        self.recvThread = threading.Thread(target=self.__receiver, args=(self.rpipe, ))
+        self.recvThread.setDaemon(True)
+        self.recvThread.start()
 
-        # 用于线程间通信以反馈解析进度的通信队列
-        self.com_queue = Queue(maxsize=task.getLoad())
+        # thread for generator
+        self.genThread = None
 
-        # 接收通信队列发来消息的线程
-        self.com_thread = threading.Thread(target=self.__receiver, args=(self.com_queue,))
-        self.com_thread.setDaemon(True)
-        self.com_thread.start()
-
-        # 用来最后生成报告的线程
-        self.gen_thread = None
-
-        # 根据当前任务量创建线程池
-        self.pool = threadpool.ThreadPool(task.getLoad())
-
-
+        # pool must be create after os pipe
+        self._pool = multiprocessing.Pool(processes=task.getLoad())
+        # self.file_path_list = file_path_list
+        # self.modules = modules
         self.file_path_list = task.files
         self.src_path = task.src_path
         self.modules = (__M_JAVA__, __M_NATIVE__, __M_ANR__)
+
+
+        # dict for collect the progress in sub processes
+        self._progress_dict_ = multiprocessing.Manager().dict()
+        # for recording the finished file count
+        self._file_finished_ = multiprocessing.Manager().Value('d',0)
 
         # init result structure
         self._result_ = multiprocessing.Manager().dict()
@@ -91,33 +88,33 @@ class ParserManager(object):
         return parser.parse()
 
     def __getstate__(self):
-        """
+        '''
         'pool objects cannot be passed between processes or pickled'
          NotImplementedError: pool objects cannot be passed between processes or pickled
-        """
+        '''
         self_dict = self.__dict__.copy()
-        # del self_dict['_pool']
-        # del self_dict['recvThread']
+        del self_dict['_pool']
+        del self_dict['recvThread']
         return self_dict
 
-    def __receiver(self, com_queue):
+    # Run in different process
+    # 此处是各进程间的回调， 运行在各自进程中
+    # @Deprecated
+    # def __progressCallback(self, path, percent):
+    #     # calculate current progress
+    #     self._progress_dict_[path] = percent
+    #     progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
+    #     # send progress to task manager
+    #     if self.pg_callback: self.pg_callback(progress)
 
-        """ 接收工作线程通过queue发送过来的每个文件解析的进度
-        :param com_queue: 通信队列
-        """
-
+    def __receiver(self, receiver):
+        '''
+        receive data from other process
+        :param receiver: a system pipe which can be used for receiving data from child processes
+        '''
         tool.log("start __receiver")
-
-        if not com_queue:
-            raise NullError("com_queue can't be Null")
-
         while self.running:
-            data = com_queue.get()
-
-            print data
-
-            continue
-
+            data = os.read(receiver, 256)
             # get path and percent from data like "path: /home/path/xxx, percent: 0.1341"
             m = re.match(r"^path: (/.+), percent: ([01]\.\d+)?$", data)
             if m:
@@ -180,8 +177,8 @@ class ParserManager(object):
             if self.task_listener:
                 self.task_listener.onTaskStateChanged(self.task)
 
-            self.gen_thread = threading.Thread(target=self.__start_generator, args=(self._result_,))
-            self.gen_thread.start()
+            self.genThread = threading.Thread(target=self.__start_generator, args=(self._result_,))
+            self.genThread.start()
 
     def __start_generator(self, result):
         '''
