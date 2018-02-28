@@ -4,6 +4,10 @@ import sys
 import os
 import re
 
+# 目的： 去除.java.xml文件的patch
+
+# 针对.java、.xml文件， 按行扫描， 如果开头第一个字符是+号， 则去除
+
 def checkFileExists(path):
     return os.path.isfile(path)
 

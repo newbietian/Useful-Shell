@@ -3,7 +3,7 @@
 import sys
 import os
 
-
+# 删除指定目录所有指定格式的文件。
 
 def checkDirExists(path):
     return os.path.isdir(path)

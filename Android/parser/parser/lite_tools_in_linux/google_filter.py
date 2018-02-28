@@ -4,6 +4,8 @@ import os
 import time
 import threading
 
+# 用来剔除git log记录中包含google|intel|android|arm的 工具，最后会新生成一份commit log
+
 PAT_COMMIT = r"^commit [\da-z]+$"
 PAT_AUTHOR = r"^Author: .+<.+@(?:google|intel|android|arm).com>$"
 PAT_MERGE = r"^Merge: .+$"
