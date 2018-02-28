@@ -9,6 +9,9 @@ Useful shell for work
 [2、.qta7tool : A Qt environment config kit for Cortex A7 project build](https://github.com/Bravest-Ptt/Useful-Shell/blob/master/Linux-Android/.qta7tool)<br>
 **@usage**: See README file in .qta7tool directory<br>
 
+[3、AndroidManifest.xml 解析](https://github.com/Bravest-Ptt/Useful-Shell/blob/master/Linux-Android/axmlprinter-master-0.1.7.jar)<br>
+**@usage**: 1、将apk文件解压缩，得到AndroidManifest.xml  2、java -jar axmlprinter-master-0.1.7.jar <your_AndroidManifest.xml><br>
+
 ## Android
 [1、Android Log Analysis](https://github.com/Bravest-Ptt/Useful-Shell/tree/master/Android/parser)<br>
     <font size=1>Python+Html+Js实现的Android Log 分析工具，正在开发中...</font><br>
@@ -20,5 +23,11 @@ Useful shell for work
     <font size=1>CPU-Z更强大，显示Soc、Device、System、Battery、Thermal、Sensors等信息</font><br>
 [5、Rec.-录屏工具.apk](https://github.com/Bravest-Ptt/Useful-Shell/blob/master/Android/Rec.-%E5%BD%95%E5%B1%8F%E5%B7%A5%E5%85%B7.apk)<br>
     <font size=1>Android录屏工具这个就够了，支持Size、Bit rate、Duration、Audio、Filename等选项</font><br>
-    
+[6、Android Button Maker](http://angrytools.com/android/button/)<br>
+    <font size=1>简便的Android按钮制作工具，支持代码生成，效果展示，实时更新数据</font><br>
+[7、svg2android](https://github.com/inloop/svg2android)<br>
+    <font size=1>将svg图片转为android可VectorDrawable</font><br>
+[8、apk-method-count](https://github.com/inloop/apk-method-count)<br>
+    <font size=1>计算单个apk中的方法数量，用于64k限制提示</font><br>
+
 ## Windows
