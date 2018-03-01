@@ -53,7 +53,6 @@ class ParserManager(object):
         # 根据当前任务量创建线程池
         self.pool = threadpool.ThreadPool(task.getLoad())
 
-
         self.file_path_list = task.files
         self.src_path = task.src_path
         self.modules = (__M_JAVA__, __M_NATIVE__, __M_ANR__)
