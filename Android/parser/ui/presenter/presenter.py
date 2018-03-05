@@ -46,21 +46,22 @@ class UIActionInterface(object):
         :param task:
         '''
 # ----------------------------------------------------------------------------------------------------
-mUI = None
+# mUI = None
+#
+# def setUI(ui):
+#     global mUI
+#     mUI = ui
+#
+# def getUI():
+#     global mUI
+#     return mUI
 
-def setUI(ui):
-    global mUI
-    mUI = ui
-
-def getUI():
-    global mUI
-    return mUI
 
 class Presenter(TaskListener):
-    def __init__(self):
-        #self.ui = ui
+    def __init__(self, ui):
+        self.ui = ui
         self.taskManager = TaskManager()
-        self.taskManager.setTaskListener(self)
+        self.taskManager.set_task_listener(self)
         self.taskManager.start()
 
         # Interface with 2 args:
@@ -84,33 +85,32 @@ class Presenter(TaskListener):
     def CreateTask(self, log_path, src_path=''):
         task = Task(log_path, src_path)
         # insert to db
-        suc = dbPresenter.InsertTask(task)
-        print suc
-        if not suc[0] and suc[1]:
+        #suc = dbPresenter.InsertTask(task)
+        #print suc
+        #if not suc[0] and suc[1]:
             #self.ui.AddTaskFailed(task, suc[1])
-            if mUI: mUI.AddTaskFailed(task, suc[1])
-            return
+            #if mUI: mUI.AddTaskFailed(task, suc[1])
+            #return
 
         # show in ui
-        #self.ui.AddTaskToProcessPanel(task)
-        if mUI: mUI.AddTaskToProcessPanel(task)
+        self.ui.AddTaskToProcessPanel(task)
+        #if mUI: mUI.AddTaskToProcessPanel(task)
 
         # put into task manager
         self.taskManager.add_task(task)
 
     # Called by ParserManager
     def on_task_state_changed(self, task):
-        if mUI:
-            tool.log("onTaskStateChanged", mUI)
-            # wx.CallAfter(self.ui.UpdateTaskInProcessPanel(task))
-            wx.CallAfter(mUI.UpdateTaskInProcessPanel(task))
+        #if mUI:
+            # tool.log("onTaskStateChanged", mUI)
+        wx.CallAfter(self.ui.UpdateTaskInProcessPanel,task=task)
+            #wx.CallAfter(mUI.UpdateTaskInProcessPanel(task))
 
     def on_task_progress_changed(self, task, progress):
-        if mUI:
-            tool.log("onTaskProgressChanged", mUI)
-            #wx.CallAfter(self.ui.UpdateTaskProgress(task, progress))
-            wx.CallAfter(mUI.UpdateTaskProgress(task, progress))
-
+        # if mUI:
+            # tool.log("onTaskProgressChanged", mUI)
+        wx.CallAfter(self.ui.UpdateTaskProgress, task=task, progress=progress)
+            # wx.CallAfter(mUI.UpdateTaskProgress(task, progress))
 
 
 if __name__ == '__main__':

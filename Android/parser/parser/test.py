@@ -88,7 +88,6 @@ if __name__ == "__main__":
     list = tool.getParseableFileList(path)
 
     print list
-    print "pid = = = = = " , multiprocessing.current_process().pid
 
     task = Task(path, '')
     task.getLoad()
@@ -97,4 +96,4 @@ if __name__ == "__main__":
     pm.execute()
 
     import time
-    time.sleep(20)
+    time.sleep(40)

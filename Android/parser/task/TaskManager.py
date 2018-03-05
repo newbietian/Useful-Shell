@@ -6,6 +6,7 @@ from task import Task
 from parser.ParserManager import ParserManager
 from ui.presenter import dbPresenter
 
+LOG_TAG = "TaskManager"
 
 class TaskQueue(object):
     """
@@ -42,7 +43,7 @@ class ProcessingTaskQueue(TaskQueue):
         for t in self._queue:
             load_sum += t.getLoad()
 
-        tool.log("get_load_sum", "load_sum = %d" % load_sum)
+        tool.log(LOG_TAG, "load_sum = %d" % load_sum)
 
         return load_sum
 
@@ -122,6 +123,7 @@ class TaskManager(object):
     """
 
     # TODO 可以从配置文件中获取
+    # 代表着最多可同时开启50个线程处理任务。
     _MAX_PROCESSING_ = 50
 
     instance = None
@@ -129,6 +131,7 @@ class TaskManager(object):
     _processingQueue = None
     _task_handler = None
     _running = False
+    _task_listener = None
 
     def __new__(cls, *args, **kwargs):
         if not cls.instance:
@@ -137,6 +140,7 @@ class TaskManager(object):
             cls._processingQueue = ProcessingTaskQueue()
             cls._running = True
             cls._task_handler = None
+            cls._task_listener = None
         return cls.instance
 
     # public
@@ -155,49 +159,55 @@ class TaskManager(object):
         self._task_handler = None
         self.instance = None
 
-    def setTaskListener(self, listener):
-        self._task_listener = listener
+    def set_task_listener(self, l):
+        self._task_listener = l
 
     # private
 
     def _handle_tasks(self):
-        tool.log("_handle_tasks", "start")
+        tool.log(LOG_TAG, "_handle_tasks start")
         while self._running:
-            # A 0.5 second loop
-            time.sleep(0.5)
+            # 1秒一次的轮询
+            time.sleep(1)
 
-            if not self._waitingQueue.size() > 0:
+            # 如果等待队列中没有任务， 则继续
+            if self._waitingQueue.size() <= 0:
                 continue
 
-            # calculate current work num
+            # 当处理队列中有任务的时候，计算当前的总工作量，用以确定TaskManager是否还能承受
             if self._processingQueue.size() > 0:
+                # 当前任务量
                 current_load = self._processingQueue.get_load_sum()
+                # 下一个任务的任务量
                 future_load = self._waitingQueue.get_header_load()
-                if current_load + future_load <= TaskManager._MAX_PROCESSING_:
-                    # put the task to _processingQueue
-                    task = self._waitingQueue.get()
-                    self._processingQueue.put(task)
 
-                    # 启动进程池执行任务
-                    pm = ParserManager(task)
+                # 如果两者相加没超过总任务量， 则运行
+                if current_load + future_load <= TaskManager._MAX_PROCESSING_:
+                    # 将等待队列的任务放入处理队列，并启动进程池执行任务
+                    t = self._waitingQueue.get()
+                    self._processingQueue.put(t)
+                    pm = ParserManager(t)
                     if self._task_listener:
                         pm.set_task_listener(self._task_listener)
                     pm.execute()
-                    tool.log("start ParserManager 1")
+                    tool.log(LOG_TAG, "_handle_tasks: start ParserManager 1")
                 else:
-                    tool.log("_handle_task", "please hold on")
+                    tool.log(LOG_TAG, "_handle_tasks: please hold on")
             else:
+                # 如果当前处理队列中没有任务， 直接从等待队列中拿出一个任务放到处理队列
                 task = self._waitingQueue.get()
+                # 计算任务量
                 task.getLoad()
                 self._processingQueue.put(task)
 
-                self._task_listener.on_task_state_changed(task)
-
-                # 启动进程池执行任务
-                pm = ParserManager(task)
                 if self._task_listener:
-                    pm.set_task_listener(self._task_listener)
-                tool.log("ParserManager", "tagggggggggggggggg")
+                    self._task_listener.on_task_state_changed(task)
+
+                tool.log(LOG_TAG, "tagggggggggggggggg")
+                tool.log(LOG_TAG, "state = %d" % task.state)
+                # 启动任务
+                pm = ParserManager(task)
+                pm.set_task_listener(self._task_listener)
                 pm.execute()
 
 

@@ -94,7 +94,7 @@ class Parser(object):
                     #print "exception in line {0} is same as {1}".format(jr.location_in_log.found_line, p.location_in_log)
 
             elif __M_NATIVE__ in self.modules and line.find(NativeCrashParser.__ENTRY__) > 0:
-                print line
+                # print line
                 pass
 
             elif __M_ANR__ in self.modules:
@@ -106,8 +106,8 @@ class Parser(object):
                 self.pg_curr_level += 1
                 percent = logfp.tell() / self.log_size
 
-                # 字典数据类型： {"log_path": xxx, "percent": xxx}
-                self.send_queue.put({"log_path": self.log_path, "percent": percent})
+                # 字典数据类型： {"mode": 1, "log_path": xxx, "percent": xxx}
+                self.send_queue.put({"mode": 1, "log_path": self.log_path, "percent": percent})
 
         #print "len(all_module_results[__M_JAVA__])", len(all_module_results[__M_JAVA__])
         print all_module_results

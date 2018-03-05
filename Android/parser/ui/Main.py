@@ -63,9 +63,14 @@ def main():
     app = Application(False)
     app.MainLoop()
 
-#---------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+
 
 class Application(wx.App):
+    """
+    应用启动开始
+    WxPython 的 Application 实例
+    """
     def OnInit(self):
         self.SetAppName(LANG.app_name)
         splash = SplashScreen()
@@ -74,11 +79,23 @@ class Application(wx.App):
 
 # ---------------------------------------------------------------------------
 
+
 class SplashScreen(wx.SplashScreen):
+    """
+    Splash欢迎页，启动 Web Server，用来接收网页的点击事件
+    由Application启动
+    """
+
+    # 用于监听网页点击事件的WEB服务
     global __sWebProcess
+
     def __init__(self):
-        showtime = 100
-        wx.SplashScreen.__init__(self, image.app_splash.GetBitmap(),
+
+        # Splash页面显示时间长度
+        showtime = 2000
+
+        wx.SplashScreen.__init__(self,
+                                 image.app_splash.GetBitmap(),
                                  wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
                                  showtime, None, -1)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -124,10 +141,14 @@ class SplashScreen(wx.SplashScreen):
         if self.fc.IsRunning():
             self.Raise()
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 
 class AppStatusBar(wx.StatusBar):
+    """
+    应用的状态栏，位于应用底部，一般用来表示一些状态
+    """
+
     __Target_Field=1
 
     def __init__(self, parent, level='info', str=''):
@@ -211,12 +232,15 @@ class AppStatusBar(wx.StatusBar):
 
 # -----------------------------------------------------------------------------------------
 
+
 class AppShowWindow(wx.SplitterWindow):
     def __init__(self, parent, ID):
         wx.SplitterWindow.__init__(self, parent, ID, style=wx.SP_LIVE_UPDATE)
 
 
 # ------------------------------------------------------------------------------------------
+
+
 class MyUlcMainWindow(ULC.UltimateListMainWindow):
     def OnCompareItems(self, line1, line2):
         item = ULC.UltimateListItem()
@@ -236,9 +260,9 @@ class MyUlcMainWindow(ULC.UltimateListMainWindow):
         else:
             return cmp(data1, data2)
 
+# -------------------------
 
 
-#-------------------------
 class MyUlc(ULC.UltimateListCtrl):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=0, agwStyle=0, validator=wx.DefaultValidator, name="UltimateListCtrl"):
@@ -331,7 +355,7 @@ class UlcTaskList(wx.Panel):
             raise Exception, "Wrong State %d" % task.state
 
         index = self.ulc.FindItem(-1, task.log_path)
-        print index
+        print "hall 0, ", index
 
         if index != wx.NOT_FOUND:
             state_item = self.ulc.GetItem(index, 1)
@@ -578,7 +602,8 @@ class UlcTaskDoneList(wx.Panel):
         sizer.Add(self.ulc, 1, flag=wx.EXPAND)
         self.SetSizer(sizer)
 
-#-------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------
+
 
 class AppToolBar(wx.ToolBar):
     __TBFLAGS__ = (wx.TB_HORIZONTAL
@@ -614,7 +639,8 @@ class AppToolBar(wx.ToolBar):
         self.Bind(wx.EVT_TOOL, self.OnToolClick, id=self.TOOL_CLEAN)
         self.Bind(wx.EVT_TOOL, self.OnToolClick, id=self.TOOL_HELP)
 
-#---------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
+
 
 class AppNewTaskDialog(wx.Dialog):
     LogPath=''
@@ -825,8 +851,10 @@ class AppNewTaskDialog(wx.Dialog):
             dlg.Destroy()
         return path
 
-#---------------------------------------------------------------------------------------------
-#主框架
+# ---------------------------------------------------------------------------------------------
+# 主框架
+
+
 class MainWindow(wx.Frame, UIActionInterface):
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, -1, LANG.app_name, size=(800,500))
@@ -837,8 +865,8 @@ class MainWindow(wx.Frame, UIActionInterface):
         self.statusbar()
         self.toolbar()
 
-        self.presenter = Presenter()
-        PRESENTER.setUI(self)
+        self.presenter = Presenter(self)
+        # PRESENTER.setUI(self)
 
     #主体窗口
     def mainWindow(self):
@@ -943,8 +971,7 @@ class MainWindow(wx.Frame, UIActionInterface):
     def __ShowHelp(self):
         pass
 
-
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 if __name__ == "__main__":
     print 'current pid is %s' % os.getpid()
     main()

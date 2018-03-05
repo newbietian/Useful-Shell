@@ -10,6 +10,9 @@ import tool.tools as tool
 from task.task import Task
 
 
+LOG_TAG = "ParserManager"
+
+
 class NullError(Exception):
     """空指针错误"""
 
@@ -30,7 +33,7 @@ class ParserManager(object):
             :param task: 包含此解析任务的信息
         """
         if not task or not len(task.files) > 0:
-            raise NullError("Illegl task argument.")
+            raise NullError("Illegal task argument.")
         self.task = task
         # 表明处理状态， True正在处理， False完成处理或其他情况
         self.running = True
@@ -64,6 +67,8 @@ class ParserManager(object):
         self.percent = 0
         # 存储每个文件的进度
         self.percent_files = {}
+        # 完成file计数
+        self.files_done = 0
 
         # 状态反馈回调和监听
         self.task_listener = None
@@ -104,15 +109,15 @@ class ParserManager(object):
         p.set_sender(self.com_queue)
         return p.parse()
 
-    def __getstate__(self):
-        """
-        'pool objects cannot be passed between processes or pickled'
-         NotImplementedError: pool objects cannot be passed between processes or pickled
-        """
-        self_dict = self.__dict__.copy()
-        # del self_dict['_pool']
-        # del self_dict['recvThread']
-        return self_dict
+    # def __getstate__(self):
+    #     """
+    #     'pool objects cannot be passed between processes or pickled'
+    #      NotImplementedError: pool objects cannot be passed between processes or pickled
+    #     """
+    #     self_dict = self.__dict__.copy()
+    #     # del self_dict['_pool']
+    #     # del self_dict['recvThread']
+    #     return self_dict
 
     def _receiver(self):
         """ 接收工作线程通过queue发送过来的每个文件解析的进度， 处于“运行时”状态 """
@@ -125,7 +130,7 @@ class ParserManager(object):
             # task状态消息 {"mode": 0, "state": xx}
             # parser子线程的消息 {"mode": 1, "log_path": xxx, "percent": 99}， 进度反馈
             data = self.com_queue.get()
-            print data
+            # print data
 
             if data["mode"] == 0:
                 # 生成完成
@@ -136,14 +141,17 @@ class ParserManager(object):
             elif data["mode"] == 1:
                 # 存储当前log文件进度
                 log_path = data["log_path"]
-                percent = int(data["percent"])
+                percent = float(data["percent"])
                 self.percent_files[log_path] = percent
 
                 # 所有文件进度之和 = sum(self.percent_files.values())
                 # 所有文件总个数 = len(self.file_path_list)或len(self.task.files)
                 # 进度 = 所有文件进度之和 / 所有文件总个数
                 self.percent = int((float(sum(self.percent_files.values())) / len(self.file_path_list)) * 100)
-                print self.percent
+
+                # 调用 self.pool 的wait方法，迫使线程调用callback
+                if self.percent >= 100:
+                    self.pool.wait()
 
                 # 将当前任务总体进度反馈给TaskManager
                 if self.task_listener:
@@ -158,6 +166,8 @@ class ParserManager(object):
         :param result: 从Parser返回的每个文件对应的结果
         """
 
+        self.files_done += 1
+
         # 将文件的结果汇总
         try:
             for m in self.modules:
@@ -171,7 +181,7 @@ class ParserManager(object):
 
         # TODO 去重
 
-        if self.percent >= 100:
+        if self.files_done >= len(self.task.files):
             print "Should remove duplicate result"
             print "Start thread to generate result"
             # callback
