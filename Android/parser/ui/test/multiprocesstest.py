@@ -88,7 +88,7 @@ class MyFrame(wx.Frame):
         #self.test.addProcess(self.writer)
         task = Task(str(uuid.uuid4()),Task.__STATE_NEW__, "", "")
         print "add task = ", task.name
-        self.tm.addTask(task)
+        self.tm.add_task(task)
 
     def OnStopButton(self, evt):
         self.StopThreads()

@@ -1,9 +1,6 @@
 # coding=utf-8
-import multiprocessing
 import threading
 import threadpool
-import os
-import re
 
 from Queue import Queue
 
@@ -24,7 +21,6 @@ class NullError(Exception):
 
 
 class ParserManager(object):
-
     """ ParserManager通过多线程来实现任务的后台执行。
         PS： 以前是多进程，但和ui交互困难~， 多进程的未完成实现见old/ParserManager_Process.py
     """
@@ -43,7 +39,7 @@ class ParserManager(object):
         self.com_queue = Queue(maxsize=task.getLoad())
 
         # 接收通信队列发来消息的线程
-        self.com_thread = threading.Thread(target=self.__receiver, args=(self.com_queue,))
+        self.com_thread = threading.Thread(target=self._receiver)
         self.com_thread.setDaemon(True)
         self.com_thread.start()
 
@@ -55,39 +51,58 @@ class ParserManager(object):
 
         self.file_path_list = task.files
         self.src_path = task.src_path
+
+        # TODO 从配置文件，而不是经过参数传递
         self.modules = (__M_JAVA__, __M_NATIVE__, __M_ANR__)
 
-        # init result structure
-        self._result_ = multiprocessing.Manager().dict()
+        # 用来存储最终结果的字典
+        self._result_ = {}
         for m in self.modules:
             self._result_[m] = []
 
+        # 当前任务进度
+        self.percent = 0
+        # 存储每个文件的进度
+        self.percent_files = {}
+
+        # 状态反馈回调和监听
         self.task_listener = None
 
-    def setTaskListener(self, tl):
+    def set_task_listener(self, tl):
+        """
+        回调设置函数
+        :param tl: 回调， 用来和TaskManager沟通
+        """
         self.task_listener = tl
 
     def execute(self):
-        '''Do job entry'''
-        print multiprocessing.current_process().pid
-        for file_path in self.file_path_list:
-            # start a process and do job
-            print file_path
-            self._pool.apply_async(proxy, (self, file_path, self.modules), callback=self.__callback)
-        self._pool.close()
+        """
+        接口：暴露给外部调用
+        """
+        # 形成任务列表
+        task_list = []
+        for l in self.task.files:
+            l_tmp = ([l], None)
+            task_list.append(l_tmp)
 
-    def __run__(self, log_path, modules):
+        # 生成多线程任务
+        reqs = threadpool.makeRequests(self._execute, task_list, callback=self._callback)
+        [self.pool.putRequest(req) for req in reqs]
+
+    def _execute(self, log_path):
         """
-        start a process and do job
-        :param log_path: the log to parse
-        :param modules: the modules we care
-        :return: the parse result we get
+        在子线程中运行的代码块
+        :param log_path: 解析log文件的路径
+        :return: 解析后的结果
         """
-        #print multiprocessing.current_process().pid
         tool.log("__start_one_parser", log_path)
-        parser = Parser(log_path, modules)
-        parser.set_pipe_sender(self.wpipe)
-        return parser.parse()
+
+        # 通知状态变化： 正在处理
+        self.com_queue.put({"mode": 0, "state": Task.__STATE_PROCESSING__})
+
+        p = Parser(log_path)
+        p.set_sender(self.com_queue)
+        return p.parse()
 
     def __getstate__(self):
         """
@@ -99,96 +114,86 @@ class ParserManager(object):
         # del self_dict['recvThread']
         return self_dict
 
-    def __receiver(self, com_queue):
-
-        """ 接收工作线程通过queue发送过来的每个文件解析的进度
-        :param com_queue: 通信队列
-        """
-
+    def _receiver(self):
+        """ 接收工作线程通过queue发送过来的每个文件解析的进度， 处于“运行时”状态 """
         tool.log("start __receiver")
-
-        if not com_queue:
+        if not self.com_queue:
             raise NullError("com_queue can't be Null")
 
         while self.running:
-            data = com_queue.get()
-
+            # data 是字典类型的数据，
+            # task状态消息 {"mode": 0, "state": xx}
+            # parser子线程的消息 {"mode": 1, "log_path": xxx, "percent": 99}， 进度反馈
+            data = self.com_queue.get()
             print data
 
-            continue
+            if data["mode"] == 0:
+                # 生成完成
+                self.task.state = data["state"]
+                if self.task_listener:
+                    self.task_listener.on_task_state_changed(self.task)
 
-            # get path and percent from data like "path: /home/path/xxx, percent: 0.1341"
-            m = re.match(r"^path: (/.+), percent: ([01]\.\d+)?$", data)
-            if m:
-                path = m.group(1)
-                percent = float(m.group(2))
-                #print "pid = %d" % multiprocessing.current_process().pid, "path = %s" % path, percent
-            else:
-                # TODO 由于没有同步机制， 会出现还没写入完成就被读走的情况，仅作为一种大概的反馈
-                # __receiver.error : not formatted data : -30 (copy).log, percent: 0.209564000682
-                tool.log("__receiver.error", "not formatted data : %s" % data)
-                continue
+            elif data["mode"] == 1:
+                # 存储当前log文件进度
+                log_path = data["log_path"]
+                percent = int(data["percent"])
+                self.percent_files[log_path] = percent
 
-            # calculate current progress
-            self._progress_dict_[path] = percent
-            # float
-            progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
-            # int
-            progress = int(progress * 100)
-            print progress
+                # 所有文件进度之和 = sum(self.percent_files.values())
+                # 所有文件总个数 = len(self.file_path_list)或len(self.task.files)
+                # 进度 = 所有文件进度之和 / 所有文件总个数
+                self.percent = int((float(sum(self.percent_files.values())) / len(self.file_path_list)) * 100)
+                print self.percent
 
-            # send progress to task manager
-            if self.task_listener: self.task_listener.onTaskProgressChanged(self.task, progress)
+                # 将当前任务总体进度反馈给TaskManager
+                if self.task_listener:
+                    self.task_listener.on_task_progress_changed(self.task, self.percent)
 
-    # TODO 在这儿做外部去重
-    # 此处是各进程调用回调返回参数处， 运行在主UI进程中
-    def __callback(self, result):
-        '''
-        The result callback of parser
-        :param result: from parser
-        '''
+    def _callback(self, wq, result):
+        """
+        子线程回调函数
+        在所有解析完成后调用， 用来进一步去重， 进入：生成结果状态
+        同时，启动图标数据生成线程
+        :param wq WorkRequest 子线程的任务的封装类实例，包含子线程参数信息
+        :param result: 从Parser返回的每个文件对应的结果
+        """
 
-        print "pri finished222", self._file_finished_.value
-        self._file_finished_.value = self._file_finished_.value + 1
-        print "all", len(self.file_path_list)
-        print "finished", self._file_finished_.value
-
-        #print "before:", self._result_
-        # TODO 将各个进程的结果汇总
+        # 将文件的结果汇总
         try:
             for m in self.modules:
                 if len(result[m]) > 0:
-                    self._result_[m]+=result[m]
+                    self._result_[m] += result[m]
         except Exception as e:
-            print "exception in callback = ", e.message
-        #print
-        #print "after:", self._result_
+            print "exception in callback = %s , %s" % (wq, e.message)
+
+        # print
+        # print "after:", self._result_
 
         # TODO 去重
 
-        #print multiprocessing.current_process().pid
-        #progress = float(sum(self._progress_dict_.values())) / len(self.file_path_list)
-        #print "self._progress_ = ", progress
-        #if progress >= 1.0:
-        print "self._file_finished_.value",self._file_finished_.value
-        if self._file_finished_.value == len(self.file_path_list):
+        if self.percent >= 100:
             print "Should remove duplicate result"
             print "Start thread to generate result"
             # callback
             self.task.state = Task.__STATE_GENERATING__
             if self.task_listener:
-                self.task_listener.onTaskStateChanged(self.task)
+                self.task_listener.on_task_state_changed(self.task)
 
-            self.gen_thread = threading.Thread(target=self.__start_generator, args=(self._result_,))
+            self.gen_thread = threading.Thread(target=self._run_generator, args=(self._result_,))
             self.gen_thread.start()
 
-    def __start_generator(self, result):
-        '''
-        The target method for generator thread
-        :param result: the result we get after analysis
-        '''
-        # send the callback state
-        print result
+    def _run_generator(self, result):
+        """ 结果生成线程的执行代码段
+            :param result: 经过Parser内部去重和ParserManager外部去重后的结果
+        """
 
-def proxy(cls_instance, log, modules):
-    return cls_instance.__run__(log, modules)
+        # 通知状态变化：正在生成
+        self.com_queue.put({"mode": 0, "state": Task.__STATE_GENERATING__})
+
+        # TODO 未完成
+        print result
+        print "Generating..."
+        time.sleep(2)
+
+        # 通知状态变化：任务完成
+        self.com_queue.put({"mode": 0, "state": Task.__STATE_DONE__})

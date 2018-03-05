@@ -12,15 +12,19 @@ class Inner(object):
     self.sizes = 5
     self.pool = threadpool.ThreadPool(3)
 
-  def inn_do_something(self, n, com_queue):
+  def inn_do_something(self, n):
     print "name is = %s " % n
     count = 0
     while count < 3:
       count+=1
-      com_queue.put({"thread":n, "state":count})
+      self.com_queue.put({"thread":n, "state":count})
       time.sleep(1)
 
-    com_queue.put({"thread":n, "state":"done"})
+    self.com_queue.put({"thread":n, "state":"done"})
+    return n
+
+  def c(self, w, r):
+    print w, r
 
   def proxy(self):
     while 1:
@@ -39,18 +43,25 @@ class Inner(object):
         print "++++ ", data["thread"], " : ", data["state"]
 
   def thread_main(self):
-    name_list = [(["pengtian", self.com_queue], None),
-                 (["adaf",self.com_queue], None),
-                 (["agagg",self.com_queue], None),
-                 (["rutw",self.com_queue], None),
-                 (["adhjk",self.com_queue], None)]
+    # name_list = [(["pengtian", self.com_queue], None),
+    #              (["adaf",self.com_queue], None),
+    #              (["agagg",self.com_queue], None),
+    #              (["rutw",self.com_queue], None),
+    #              (["adhjk",self.com_queue], None)]
+
+    name_list = [(["pengtian"], None),
+                 (["adaf"], None),
+                 (["agagg"], None),
+                 (["rutw"], None),
+                 (["adhjk"], None)]
 
     rec = threading.Thread(target=self.proxy)
     rec.setDaemon(True)
     rec.start()
 
-    reqs = threadpool.makeRequests(self.inn_do_something, name_list)
+    reqs = threadpool.makeRequests(self.inn_do_something, name_list, callback=self.c)
     [self.pool.putRequest(req) for req in reqs]
+
 
 if __name__=="__main__":
   inn = Inner()

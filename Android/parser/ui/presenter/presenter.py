@@ -96,16 +96,16 @@ class Presenter(TaskListener):
         if mUI: mUI.AddTaskToProcessPanel(task)
 
         # put into task manager
-        self.taskManager.addTask(task)
+        self.taskManager.add_task(task)
 
     # Called by ParserManager
-    def onTaskStateChanged(self, task):
+    def on_task_state_changed(self, task):
         if mUI:
             tool.log("onTaskStateChanged", mUI)
             # wx.CallAfter(self.ui.UpdateTaskInProcessPanel(task))
             wx.CallAfter(mUI.UpdateTaskInProcessPanel(task))
 
-    def onTaskProgressChanged(self, task, progress):
+    def on_task_progress_changed(self, task, progress):
         if mUI:
             tool.log("onTaskProgressChanged", mUI)
             #wx.CallAfter(self.ui.UpdateTaskProgress(task, progress))

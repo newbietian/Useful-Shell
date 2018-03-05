@@ -136,7 +136,7 @@ class ParserManager(object):
             print progress
 
             # send progress to task manager
-            if self.task_listener: self.task_listener.onTaskProgressChanged(self.task, progress)
+            if self.task_listener: self.task_listener.on_task_progress_changed(self.task, progress)
 
     # TODO 在这儿做外部去重
     # 此处是各进程调用回调返回参数处， 运行在主UI进程中
@@ -175,7 +175,7 @@ class ParserManager(object):
             # callback
             self.task.state = Task.__STATE_GENERATING__
             if self.task_listener:
-                self.task_listener.onTaskStateChanged(self.task)
+                self.task_listener.on_task_state_changed(self.task)
 
             self.genThread = threading.Thread(target=self.__start_generator, args=(self._result_,))
             self.genThread.start()
