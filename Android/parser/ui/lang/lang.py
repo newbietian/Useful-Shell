@@ -15,6 +15,14 @@ class Lang(object):
             "zh": "已完成",
             "en": "Finished"
         },
+        "finished_time":{
+          "zh": "完成时间",
+          "en": "Finish time"
+        },
+        "log_path": {
+            "zh": "Log路径",
+            "en": "Log path"
+        },
         "task_log_path": {
             "zh": "日志路径",
             "en": "Log Path"

@@ -11,11 +11,12 @@ class Task(object):
     __STATE_PROCESSING__ = _STATE_BASE__ + 1
     __STATE_PAUSED__ = _STATE_BASE__ + 2
     __STATE_GENERATING__ = _STATE_BASE__ + 3
-    __STATE_DONE__= _STATE_BASE__ + 4
+    __STATE_DONE__ = _STATE_BASE__ + 4
+    __STATE_FAILED__ = _STATE_BASE__ + 5
 
 
-    def __init__(self, log_path, src_path, state=__STATE_WAITING__, create_time='', finish_seconds=0):
-        self.state=state
+    def __init__(self, log_path, src_path, state=__STATE_WAITING__, create_time='', finish_time=0):
+        self.state = state
 
         # t = time.localtime(time.time())
         # self.create_time = time.strftime("%d-%b-%Y   %I:%M:%S", t)
@@ -23,7 +24,8 @@ class Task(object):
         self.log_path = log_path
         self.src_path = src_path
         self.create_time = create_time
-        self.finish_seconds = finish_seconds
+        self.finish_time = finish_time
+        self.finish_time_millis = 0
 
         self.load = None
         self.files = None

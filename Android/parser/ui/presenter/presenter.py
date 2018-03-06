@@ -1,4 +1,4 @@
-#-*- coding=utf-8 -*-
+# -*- coding=utf-8 -*-
 from task.TaskManager import TaskManager
 from task.TaskManager import TaskListener
 from task.task import Task
@@ -8,109 +8,69 @@ import wx
 
 
 class UIActionInterface(object):
+    """
+    UI的回调接口， UI会继承此接口
+    """
+
     def AddTaskToProcessPanel(self, task):
-        '''
-        :param task: target task
-        '''
+        """ 将任务添加到处理面板 """
 
     def AddTaskFailed(self, task, msg):
-        '''
-        Error occurred in insert db
-        :param task:
-        '''
+        """ 添加任务失败的时候，调用已更新UI """
 
     def UpdateTaskProgress(self, task, progress):
-        '''
-        Update the processing task progress
-        :param task: identity
-        :param progress: 1-100 integer
-        '''
+        """
+        更新Task的进度
+        :param task: 标识，用来区分更新哪个Task
+        :param progress: 1-100 整数
+        """
 
     def UpdateTaskInProcessPanel(self, task):
-        '''
-        :param task:
-        '''
+        """ 更新Task的状态 """
 
     def RemoveTaskFromProcessing(self, task):
-        '''
-        :param task:
-        '''
+        """ 将Task从正在处理面板里移除 """
 
     def AddTaskToDone(self, task):
-        '''
-        :param task:
-        '''
+        """ 将Task添加到处理完成面板 """
 
     def RemoveTaskFromDone(self, task):
-        '''
-        :param task:
-        '''
+        """ 移除完成面板里的指定任务 """
+
 # ----------------------------------------------------------------------------------------------------
-# mUI = None
-#
-# def setUI(ui):
-#     global mUI
-#     mUI = ui
-#
-# def getUI():
-#     global mUI
-#     return mUI
 
 
 class Presenter(TaskListener):
+    """ UI和TaskManager交互的Presenter """
     def __init__(self, ui):
         self.ui = ui
-        self.taskManager = TaskManager()
-        self.taskManager.set_task_listener(self)
-        self.taskManager.start()
+        self.task_manager = TaskManager()
+        self.task_manager.set_task_listener(self)
+        self.task_manager.start()
 
-        # Interface with 2 args:
-        # dbPresenter.AddInsertedListener(self.OnTaskDeletedListener)
-        # dbPresenter.AddUpdatedListener(self.OnTaskUpdatedListener)
-        # dbPresenter.AddDeletedListener(self.OnTaskDeletedListener)
-
-    # def __getstate__(self):
-    #     '''
-    #     PicklingError: Can't pickle <type 'PySwigObject'>: attribute lookup __builtin__.PySwigObject failed
-    #     wxPython中，ui类型的object不能被其他进程共享
-    #     '''
-    #     self_dict = self.__dict__.copy()
-    #     del self_dict['ui']
-    #     return self_dict
-
-    #def __call__(self, *args, **kwargs):
-    #    pass
-
-    # called by ui
-    def CreateTask(self, log_path, src_path=''):
+    # 由UI界面调用
+    def create_task(self, log_path, src_path=''):
         task = Task(log_path, src_path)
-        # insert to db
-        #suc = dbPresenter.InsertTask(task)
-        #print suc
-        #if not suc[0] and suc[1]:
-            #self.ui.AddTaskFailed(task, suc[1])
-            #if mUI: mUI.AddTaskFailed(task, suc[1])
-            #return
-
-        # show in ui
+        # 添加到ui的任务处理队列
         self.ui.AddTaskToProcessPanel(task)
-        #if mUI: mUI.AddTaskToProcessPanel(task)
+        # 添加到TaskManager中处理
+        self.task_manager.add_task(task)
 
-        # put into task manager
-        self.taskManager.add_task(task)
-
-    # Called by ParserManager
+    # 由TaskManager调用，回调，用以更新UI
     def on_task_state_changed(self, task):
-        #if mUI:
-            # tool.log("onTaskStateChanged", mUI)
-        wx.CallAfter(self.ui.UpdateTaskInProcessPanel,task=task)
-            #wx.CallAfter(mUI.UpdateTaskInProcessPanel(task))
+        if task.state >= Task.__STATE_DONE__:
+            # 此时将任务从正在处理列表移除， 放入已经完成任务列表
+            wx.CallAfter(self.ui.RemoveTaskFromProcessing, task=task)
+            wx.CallAfter(self.ui.AddTaskToDone, task=task)
+
+            # TODO 将已经完成任务记录入数据库
+        else:
+            wx.CallAfter(self.ui.UpdateTaskInProcessPanel,task=task)
 
     def on_task_progress_changed(self, task, progress):
-        # if mUI:
-            # tool.log("onTaskProgressChanged", mUI)
         wx.CallAfter(self.ui.UpdateTaskProgress, task=task, progress=progress)
-            # wx.CallAfter(mUI.UpdateTaskProgress(task, progress))
+
+# ----------------------------------------------------------------------------------------------------
 
 
 if __name__ == '__main__':

@@ -32,8 +32,7 @@ class ParserManager(object):
         """ 构造方法
             :param task: 包含此解析任务的信息
         """
-        if not task or not len(task.files) > 0:
-            raise NullError("Illegal task argument.")
+
         self.task = task
         # 表明处理状态， True正在处理， False完成处理或其他情况
         self.running = True
@@ -84,6 +83,20 @@ class ParserManager(object):
         """
         接口：暴露给外部调用
         """
+
+        # 检查是否有可解析的文件，如果没有，直接返回失败状态
+        if not self.task or not len(self.task.files) > 0:
+            tool.log("Illegal task argument.")
+
+            self.task.state = Task.__STATE_FAILED__
+            self.task.finish_time_millis \
+                , self.task.finish_time = tool.get_time_local_and_format()
+            if self.task_listener:
+                self.task_listener.on_task_state_changed(self.task)
+
+            self.running = False
+            return
+
         # 形成任务列表
         task_list = []
         for l in self.task.files:
@@ -135,6 +148,9 @@ class ParserManager(object):
             if data["mode"] == 0:
                 # 生成完成
                 self.task.state = data["state"]
+                if self.task.state == Task.__STATE_DONE__:
+                    self.task.finish_time_millis \
+                        , self.task.finish_time = tool.get_time_local_and_format()
                 if self.task_listener:
                     self.task_listener.on_task_state_changed(self.task)
 

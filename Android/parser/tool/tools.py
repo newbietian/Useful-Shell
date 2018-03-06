@@ -86,6 +86,7 @@ def getParseableFileList(path):
                 list.append(file_path)
     return list
 
+
 def __checkIsParseableFile(path):
     p = subprocess.Popen('file ' + "\"" + path + "\"", shell=True, stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
@@ -133,17 +134,28 @@ def str2msecs(time_str):
         return 0
     return int(time.mktime(tmlist)) * 1000 + int(uu)
 
+
 def log(tag, message=''):
     def_tag = 'APP'
     if message == '':
         message = tag
         tag = def_tag
-    timestamp =  time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    strall = timestamp + str(tag) + ":" + str(message)
-    print strall
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    str_all = timestamp + " " + str(tag) + ": " + str(message)
+    print str_all
     fd = open(getAppDataPath()+"log.txt", "a")
-    fd.write(strall)
+    fd.write(str_all)
     fd.close()
+
+
+def get_format_time():
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+
+def get_time_local_and_format():
+    local_time = time.localtime()
+    return [local_time, time.strftime("%Y-%m-%d %H:%M:%S", local_time)]
+
 
 class Preference(object):
     '''Single instance class for save Preference'''
