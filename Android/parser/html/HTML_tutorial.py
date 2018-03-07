@@ -5,6 +5,7 @@
 
 
 import HTML
+import tool.tools as tool
 
 # open an HTML file to show output in a browser
 HTMLFILE = 'HTML_tutorial_output.html'
@@ -12,6 +13,26 @@ f = open(HTMLFILE, 'w')
 
 
 #=== TABLES ===================================================================
+
+# fatal exception
+table_data = [
+        [HTML.link('java.lang.NullPointerException: Attempt to invoke virtual method', 'https://www.baidu.com'),       10,         tool.get_format_time()],
+        [HTML.link('java.lang.ArrayIndexOutOfBoundsException: length=0; index=-1', 'https://www.baidu.com'),   22,         tool.get_format_time()],
+        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'),     33,         tool.get_format_time()],
+    ]
+htmlcode = HTML.table(table_data,
+    header_row = ['Exception',   'Count',   'First Occurred time'],
+    border='1',
+    style='fatal_exception.css',
+    #width=500,
+    attribs={"class": "summary"},
+    col_width=['', '10%', '20%'],
+    col_align=['left', 'center', 'center'],
+    col_styles=['font-size: large', '', ''])
+f.write(htmlcode + '<p>\n')
+print htmlcode
+print '-'*79
+
 
 # 1) a simple HTML table may be built from a list of lists:
 

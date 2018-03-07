@@ -1,18 +1,15 @@
 # -*- coding: UTF-8 -*-
-import wx
 import os
-import time
-import random
 from multiprocessing import Process
 from wx.lib.agw import ultimatelistctrl as ULC
 
 from webserver import PythonWebServer
 from images import images as image
 from presenter.presenter import *
-from presenter import presenter as PRESENTER
+from task.task import Task
+
 import lang.lang as LANG
 import tool.tools as tool
-from task.task import Task
 
 USE_GENERIC = 0
 
