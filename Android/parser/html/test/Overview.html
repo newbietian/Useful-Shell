@@ -3,22 +3,23 @@
 <!--https://code.hcharts.cn/highcharts/Zh5m1w-->
 <!DOCTYPE HTML>
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title id="head_title"></title>
-		<style type="text/css"></style>
-		<link rel='icon' href='icon.ico' type=‘image/x-ico’  />
-	</head>
-	<body>
-<!--<script src="https://code.highcharts.com/highcharts.js"></script>-->
-<!--<script src="https://code.highcharts.com/modules/exporting.js"></script>-->
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title id="head_title"></title>
+    <style type="text/css"></style>
+    <link rel='icon'
+          href='data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABiElEQVQ4T6VTQVLCQBDsWVG8GfiAWmVyFV4gvAB/IFfJQXiB4QXAIXjFH8gLwB/knFglfgDiTRB3rE3Y1EbAKss9ZWene7pnJoR/HtqFt3qvFopfDUF8pt4l0wzLg3HcOY9/5ucIFFAU1/cA2nuE9eWy0DWJMgIFpqPPCRFVFJiBdwJOtr6ZA14d1jVJRlAaRlMCrrLKTAMp+EndhaRrEN/pNwami5ZdV/eEwHqIaoIxyRIYYxaFNj4Q4xhWkijXfSI0dI4k1ONbWxUFysNwBNDNRu5zAmBMzT4woQawRaDLNM6P85bTTAhKfjQjwqn6nrdsKvuRN3dtzyTQsfIw4gTOHCxcp7pRkAb/QqBzUwXDMNDSflMgV4W+KK4X2uqiZde2epDaQ3eXBRDUjmyO0YMdU4gZ3DF7QKAeUToRdSRzNXadINuDsv/SN2etVJgEuepMg7l7kWxrbpXNcebAuUsqXYe2fibLD5sE8vRYM8eMNwZ7seuM8tb2lLL8sAJBqWfJsfK7K/Ub4DK+EaJT/6MAAAAASUVORK5CYII='
+          type=‘image/x-ico’/>
+</head>
+<body>
+
 <script src="../js/highcharts.js"></script>
 <script src="../js/exporting.js"></script>
 <script src="overview_data.js"></script>
 
 <div id="container"
-	 style="min-width: 800px;
+     style="min-width: 800px;
  			min-height: 450px;
  			max-width: 1366px;
  			max-height: 768px;
@@ -54,8 +55,8 @@ var pieChart = Highcharts.chart('container', {
     },
     colors: ['#ff5722', '#3f51b5', '#f15c80', '#00bcd4', '#009688', '#607d8b'],
     credits:{
-     enabled: false  // 禁用版权信息
-    }
+    enabled: false  // 禁用版权信息
+  }
 });
 //chart title
 pieChart.title.update({ text: Overview.chart_title })
@@ -84,27 +85,7 @@ for(var i = 0; i < Overview.chart_data.length; i++) {
 }
 console.log(series1.data.length)
 pieChart.addSeries(series1)
-/*
-* 用来遍历指定对象所有的属性名称和值
-* obj 需要遍历的对象
-* author: Jet Mah
-*/
-function allPrpos ( obj ) {
-    // 用来保存所有的属性名称和值
-    var props = "" ;
-    // 开始遍历
-    for ( var p in obj ){
-        // 方法
-        if ( typeof ( obj [ p ]) == " function " ){
-            obj [ p ]() ;
-        } else {
-        // p 为属性名称，obj[p]为对应属性的值
-            props += p + " = " + obj [ p ] + " \t " ;
-        }
-    }
-    // 最后显示所有的属性
-    alert ( props ) ;
-}
-		</script>
-	</body>
+
+</script>
+</body>
 </html>

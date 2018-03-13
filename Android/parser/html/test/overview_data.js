@@ -17,14 +17,5 @@ var Overview = {
       "y": 20,
       "link": "HTML_tutorial_output.html"
     },
-        {
-      "name": "Other1",
-      "y": 67,
-      "link": "HTML_tutorial_output.html"
-    },    {
-      "name": "Other2",
-      "y": 35,
-      "link": "HTML_tutorial_output.html"
-    }
   ]
 }
