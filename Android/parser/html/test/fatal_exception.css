@@ -54,6 +54,78 @@ table.summary td {
     padding: 0.5em;
 }
 
+table.detailTitle {
+    background:  rgb(212, 233, 169);
+    border-collapse:collapse;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+table.detailTitle th {
+    background: #A5C639;
+    border: 1px outset gray;
+    padding: 0.5em;
+}
+
+table.detailTitle td {
+    border: 1px outset #gray;
+    padding: 0.5em;
+}
+
+table.detailContent {
+    background:  rgb(212, 233, 169);
+    border-collapse:collapse;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+table.detailContent th {
+    background: rgb(212, 233, 169);
+    border: 1px outset gray;
+    padding: 0.5em;
+}
+
+table.detailContent td {
+    border: 1px outset gray;
+    padding: 0.5em;
+}
+
+table.detailTitle1 {
+    background:  #ffc0a0;
+    border-collapse:collapse;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+table.detailTitle1 th {
+    background: #ff6020;
+    border: 1px outset gray;
+    padding: 0.5em;
+}
+
+table.detailTitle1 td {
+    border: 1px outset #gray;
+    padding: 0.5em;
+}
+
+table.detailContent1 {
+    background:  #ffc0a0;
+    border-collapse:collapse;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+table.detailContent1 th {
+    background: #ffc0a0;
+    border: 1px outset gray;
+    padding: 0.5em;
+}
+
+table.detailContent1 td {
+    border: 1px outset gray;
+    padding: 0.5em;
+}
+
 table.processdetails {
     background-color: rgb(212, 233, 169);
     border-collapse:collapse;

@@ -188,14 +188,20 @@ class ParserManager(object):
         try:
             for m in self.modules:
                 if len(result[m]) > 0:
-                    self._result_[m] += result[m]
+                    # 遍历每个result
+                    for i, r in enumerate(result[m]):
+                        # 如果已经在列表中，就合并。如果没有，就添加到列表中
+                        if r in self._result_[m]:
+                            r_already = self._result_[m][i]
+                            r_already.combine(r)
+                        else:
+                            self._result_[m].append(r)
+
         except Exception as e:
             print "exception in callback = %s , %s" % (wq, e.message)
 
-        # print
-        # print "after:", self._result_
-
-        # TODO 去重
+        # for r in self._result_[__M_JAVA__]:
+        #    print r
 
         if self.files_done >= len(self.task.files):
             print "Should remove duplicate result"

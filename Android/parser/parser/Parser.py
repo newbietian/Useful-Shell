@@ -90,8 +90,9 @@ class Parser(object):
                 else:
                     p_index = all_module_results[__M_JAVA__].index(jr)
                     p = all_module_results[__M_JAVA__][p_index]
-                    # TODO 内部去重
-                    #print "exception in line {0} is same as {1}".format(jr.location_in_log.found_line, p.location_in_log)
+                    p.combine(jr)
+
+                    # print p
 
             elif __M_NATIVE__ in self.modules and line.find(NativeCrashParser.__ENTRY__) > 0:
                 # print line

@@ -10,7 +10,8 @@ class LLocation(object):
         self.found_line = found_line
 
     def __str__(self):
-        return "<LLocation>" + "<" + str(hex(self.__hash__())) + ">" + str(self.__dict__)
+        # return "<LLocation>" + "<" + str(hex(self.__hash__())) + ">" + str(self.__dict__)
+        return str(self.__dict__)
 
     def __eq__(self, other):
         if type(other) is not LLocation:
@@ -28,28 +29,46 @@ class SLocation(object):
         self.in_this_package = in_this
 
     def __str__(self):
-        return "<SLocation>" + "<" + str(hex(self.__hash__())) + ">" + str(self.__dict__)
+        # return "<SLocation>" + "<" + str(hex(self.__hash__())) + ">" + str(self.__dict__)
+        return str(self.__dict__)
+
+
+class CrashBaseInfo(object):
+    def __init__(self):
+        # 同一个异常pid集合， 保证顺序和 location_in_log、occurred_time相等
+        self.p_t_id = 0
+        # 异常在log中位置集合
+        self.location_in_log = None
+        # 异常发生时间集合
+        self.occurred_time = tool.get_format_time()
+
+    def sort(self):
+        pass
 
 
 class Crash(object):
     def __init__(self):
         self.name_package = ''
         self.reason = ''
-        self.p_t_id = 0
-        self.location_in_log = None
-        self.occurred_time = None
+        # 用于当存在相同时，存储各个Crash发生的基础信息：谁，时间，地点
+        self.base_info = CrashBaseInfo()
+        self.base_info_set = []
         self.stack_trace = []
-        self.duplicate = None
+
+    def combine(self, other):
+        self.base_info_set.extend(other.base_info_set)
 
     def __str__(self):
         s = "--|--" + "name_package = " + self.name_package + "\n"\
-            + "  |--" + "reason = " + self.reason + "\n" \
-            + "  |--" + "p_t_id = " + bytes(self.p_t_id) + "\n" \
-            + "  |--" + "occurred_time = " + self.occurred_time.__str__() + "\n" \
-            + "  |--" + "location_in_log = " + self.location_in_log.__str__() + "\n" \
-            + "  |--" + "duplicate = " + self.duplicate.__str__() + "\n"
+            + "  |--" + "reason = " + self.reason + "\n"
+        if len(self.base_info_set) > 0:
+            for l, bis in enumerate(self.base_info_set):
+                s += "  |--" + "p_t_id[%d] = %s" % (l, bis.p_t_id) + "\n"
+                s += "  |--" + "occurred_time[%d] = %s" % (l, bis.occurred_time) + "\n"
+                s += "  |--" + "location_in_log[%d] = %s" % (l, bis.location_in_log) + "\n"
         if len(self.stack_trace) > 0:
-            s += "  |--" + "stack_trace[0] = " + self.stack_trace[0] + "\n"
+            for l, t in enumerate(self.stack_trace):
+                s += "  |--" + "stack_trace[%d] = %s" % (l, t)
         return s
 
 

@@ -60,12 +60,14 @@ class JavaCrashParser(object):
 
     def parse(self):
         try:
-            self.result.location_in_log = LLocation(self.logfp.name, self.logfp.line_num)
+            # self.result.location_in_log = LLocation(self.logfp.name, self.logfp.line_num)
+            self.result.base_info.location_in_log = LLocation(self.logfp.name, self.logfp.line_num)
 
             # get time
             m = re.match(self.PAT_TIME, self.start_line)
             if m:
-                self.result.occurred_time = Time(m.group(1))
+                # self.result.occurred_time = Time(m.group(1))
+                self.result.base_info.occurred_time = Time(m.group(1))
             else:
                 echo("occurred time is None")
 
@@ -89,15 +91,14 @@ class JavaCrashParser(object):
                 package_matcher = re.match(self.PAT_NAME_PACKAGE, line)
                 if package_matcher:
                     self.result.name_package = package_matcher.group(1)
-                    self.result.p_t_id = package_matcher.group(2)
-
+                    # self.result.p_t_id = package_matcher.group(2)
+                    self.result.base_info.p_t_id = package_matcher.group(2)
                     self.result.stack_trace.append(line)
                     continue
 
                 reason_matcher = re.match(self.PAT_REASON, line)
                 if reason_matcher:
                     self.result.reason = reason_matcher.group()
-
                     self.result.stack_trace.append(line)
                     continue
 
@@ -136,6 +137,7 @@ class JavaCrashParser(object):
         except Exception as e:
             echo("@@@@@@@@@@@ has Exception : " + e.message)
         finally:
+            self.result.base_info_set.append(self.result.base_info)
             return self.result
 
 def echo(s):
