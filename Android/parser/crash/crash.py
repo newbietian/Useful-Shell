@@ -40,7 +40,7 @@ class CrashBaseInfo(object):
         # 异常在log中位置集合
         self.location_in_log = None
         # 异常发生时间集合
-        self.occurred_time = tool.get_format_time()
+        self.occurred_time = None
 
     def sort(self):
         pass
@@ -70,6 +70,9 @@ class Crash(object):
             for l, t in enumerate(self.stack_trace):
                 s += "  |--" + "stack_trace[%d] = %s" % (l, t)
         return s
+
+    def get_stack(self):
+        return "".join(self.stack_trace)
 
 
 class JavaCrash(Crash):

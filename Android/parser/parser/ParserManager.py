@@ -225,7 +225,10 @@ class ParserManager(object):
         # TODO 未完成
         print result
         print "Generating..."
-        time.sleep(2)
+        import html.test.yiyiyi as yiyi
+        yiyi.gen(None, data=result)
+        print "Generated"
+        #time.sleep(2)
 
         # 通知状态变化：任务完成
         self.com_queue.put({"mode": 0, "state": Task.__STATE_DONE__})

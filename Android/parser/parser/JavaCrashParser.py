@@ -68,6 +68,7 @@ class JavaCrashParser(object):
             if m:
                 # self.result.occurred_time = Time(m.group(1))
                 self.result.base_info.occurred_time = Time(m.group(1))
+                print "self.result.base_info.occurred_time = %s" %self.result.base_info.occurred_time
             else:
                 echo("occurred time is None")
 
@@ -105,6 +106,7 @@ class JavaCrashParser(object):
                 caused_matcher = re.match(self.PAT_CAUSED_BY, line)
                 if caused_matcher:
                     self.has_caused_by = True
+                    self.result.stack_trace.append(line)
                     continue
 
                 at_line_matcher = re.match(self.PAT_AT_FILE_LINE, line)

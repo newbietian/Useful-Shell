@@ -84,7 +84,7 @@ def progress_callback(progress):
 if __name__ == "__main__":
 
     #path = "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android"
-    path = "/home/pt/下载/android"
+    path = "/home/pt/Downloads/android"
     list = tool.getParseableFileList(path)
 
     print list

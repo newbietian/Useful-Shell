@@ -187,8 +187,8 @@ class Time(object):
 
     def __cmp__(self, other):
         if not other or type(other) is not Time:
-            print "TIME: is_older_than: error, other is not Type Time"
-            return super(Time, self).__cmp__(other)
+            # print "TIME: is_older_than: error, other is not Type Time"
+            return -1
         return cmp(str2msecs(self.time), str2msecs(other.time))
 
     def __str__(self):
