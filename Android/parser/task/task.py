@@ -1,6 +1,7 @@
-#-*- coding=utf-8 -*-
+# -*- coding=utf-8 -*-
 import time
 import tool.tools as tool
+
 
 class Task(object):
 
@@ -13,7 +14,6 @@ class Task(object):
     __STATE_GENERATING__ = _STATE_BASE__ + 3
     __STATE_DONE__ = _STATE_BASE__ + 4
     __STATE_FAILED__ = _STATE_BASE__ + 5
-
 
     def __init__(self, log_path, src_path, state=__STATE_WAITING__, create_time='', finish_time=0):
         self.state = state
@@ -29,7 +29,7 @@ class Task(object):
 
         self.load = None
         self.files = None
-
+        self.result_path = ''
 
     def __eq__(self, other):
         if not other or type(other) is not Task:

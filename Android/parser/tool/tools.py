@@ -5,6 +5,9 @@ import wx
 import time
 import re
 import subprocess
+import sys
+import webbrowser
+
 
 __DB_NAME__ = "app.db"
 __CONFIG_NAME__ = "app.cfg"
@@ -70,6 +73,7 @@ def getFilesSizeMB(list):
 # 获取当前文件夹下可解析的文件
 # 如果文件夹中文件过多，可能耗时较久
 def getParseableFileList(path):
+    log("getParseableFileList", "Running ... %s" % path)
     list=[]
     if not checkFileExists(path) and not checkDirExists(path):
         raise AttributeError, "Path is not exist!"
@@ -84,6 +88,7 @@ def getParseableFileList(path):
             # 使用命令行file工具去判断此file是否是我们想要的格式，排除图片二进制或其他格式的文件
             if __checkIsParseableFile(file_path):
                 list.append(file_path)
+    log("getParseableFileList", "Done ... %s" % path)
     return list
 
 
@@ -155,6 +160,12 @@ def get_format_time():
 def get_time_local_and_format():
     local_time = time.localtime()
     return [local_time, time.strftime("%Y-%m-%d %H:%M:%S", local_time)]
+
+
+def open_browser(url):
+    sys.path.append("libs")
+    webbrowser.open(url)
+    print webbrowser.get()
 
 
 class Preference(object):

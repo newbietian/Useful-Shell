@@ -84,16 +84,26 @@ def progress_callback(progress):
 if __name__ == "__main__":
 
     #path = "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android"
-    path = "/home/pt/Downloads/android"
-    list = tool.getParseableFileList(path)
+    #path = "/home/pt/Downloads/2018-03-07_10_30_46/2018-03-07_10_30_46/1d469105" #99
+    # path = "/home/pt/Downloads/2018-03-07_10_30_46/2018-03-07_10_30_46/1d469132" #100
+    #path = "/home/pt/Downloads/2018-03-07_10_30_46/2018-03-07_10_30_46/c351cc5f"
+    # path = "/home/pt/Downloads/2018-03-07_10_30_46/2018-03-07_10_30_46/1d469018" #error
+    # path = "/home/pt/Downloads/2018-03-07_10_30_46/2018-03-07_10_30_46/ptt2"
+    #path = "/home/pt/Downloads/android/crash-17-17-13.log"
+    #list = tool.getParseableFileList(path)
 
-    print list
+    #path = "/home/pt/Downloads/2018-03-07_10_30_46/2018-03-07_10_30_46/./1d469105/com.google.android.apps.wallpaper2018-03-11_19_10_15ANR.log"
+    #path = "/home/pt/Downloads/2018-03-07_10_30_46/2018-03-07_10_30_46/ptt1/com.android.chrome2018-03-08_18_36_47CRASH.log"
+
+
+    path = "/home/pt/Downloads/2018-03-07_10_30_46/2018-03-07_10_30_46"
+    #print list
 
     task = Task(path, '')
-    task.getLoad()
+    print "load = %d " % task.getLoad()
     pm = ParserManager(task)
     #pm.setProgressCallback(progress_callback)
     pm.execute()
 
     import time
-    time.sleep(40)
+    time.sleep(400)

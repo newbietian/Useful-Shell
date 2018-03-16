@@ -1,95 +1,19 @@
 # -*- coding=utf-8 -*-
 
 import HTML
-import tool.tools as tool
 import os
+import html_page_strings
+import html_images
+import json
+import shutil
+
+import tool.tools as tool
 
 LOG_TAG = "Generator"
+
 __M_JAVA__ = "Java Crash"
 __M_NATIVE__ = "Native Crash"
 __M_ANR__ = "ANR"
-
-
-def generate_result(task, data):
-    html_file = 'HTML_tutorial_output.html'
-    f = open(html_file, 'w')
-
-    # === TABLES ===================================================================
-
-    title = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-            "http://www.w3.org/TR/html4/loose.dtd">
-    <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title id="head_title"></title>
-        <style type="text/css"></style>
-        <link rel='icon' href='icon.ico' type=‘image/x-ico’/>
-        <link rel="stylesheet" type="text/css" href="fatal_exception.css"/>
-    </head>
-    
-    <body>
-    
-    <script src="../js/websocket.js" type="text/javascript"></script>
-    
-    <div>
-        <table align="center" class="title">
-            <tr>
-                <td align="center">
-                    <img src="data:image/jpg;base64,{ logo }" complete="complete">
-                </td>
-            </tr>
-            <tr>
-                <td align="center">
-                    <h4><font color="#FF0000" size="4">{ error_type }</font> in <a id="connect" href="" onclick="">{ log_path }</a>, 生成于12:30</h4>
-                </td>
-            </tr>
-        </table>
-    </div>"""
-
-    error_type = "Fatal Exception"
-    log_path = "/home/qinsw/downloads/android/log"
-
-    f.write(title.format(logo="", error_type=error_type, log_path=log_path) + '\n\n')
-
-    # fatal exception
-    table_data = [
-        [HTML.link('java.lang.NullPointerException: Attempt to invoke virtual method', 'https://www.baidu.com'), 10,
-         tool.get_format_time()],
-        [HTML.link('java.lang.ArrayIndexOutOfBoundsException: length=0; index=-1', 'https://www.baidu.com'), 22,
-         tool.get_format_time()],
-        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'), 33,
-         tool.get_format_time()],
-        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'), 33,
-         tool.get_format_time()],
-        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'), 33,
-         tool.get_format_time()],
-        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'), 33,
-         tool.get_format_time()],
-        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'), 33,
-         tool.get_format_time()],
-        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'), 33,
-         tool.get_format_time()],
-        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'), 33,
-         tool.get_format_time()],
-        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'), 33,
-         tool.get_format_time()],
-        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'), 33,
-         tool.get_format_time()],
-        [HTML.link('java.lang.SecurityException: Permission Denial', 'https://www.baidu.com'), 33,
-         tool.get_format_time()],
-    ]
-
-    htmlcode = HTML.table(table_data,
-                          header_row=['Exception', 'Count', 'First Occurred time'],
-                          border='1',
-                          style='fatal_exception.css',
-                          attribs={"class": "summary"},
-                          col_width=['', '10%', '20%'],
-                          col_align=['left', 'center', 'center'],
-                          col_styles=['font-size: large', '', ''])
-    f.write(htmlcode + '<p>\n')
-    f.close()
 
 
 def generate_results(task, data):
@@ -101,40 +25,52 @@ def generate_results(task, data):
 
     # 目录结构：
     # 第一级：
-    #       文件：overview.html, overview_data.js,  logo.png
-    #       目录： exceptions, signals
+    #       文件：overview.html
+    #       目录： exceptions, signals, js
     # 第二级：
     #       exceptions：
-    #           exceptions.html, exceptions.css, logo.png
+    #           exceptions.html, exceptions.css
     #       signals:
-    #           signals.html, signals.css, logo.png
+    #           signals.html, signals.css
+    #       js:
+    #           overview_data.js, exporting.js, highcharts.js
 
     num_exception = len(data[__M_JAVA__])
     num_signal = len(data[__M_NATIVE__])
     num_anr = len(data[__M_ANR__])
-    result_path = task.log_path + "/Here"
+
+    p, f = os.path.split(task.log_path)
+    result_path = p + "/%s.alar" % f
 
     # 创建对应的目录
     try:
-        os.makedirs(result_path, exist_ok=True)
+        if tool.checkDirExists(result_path):
+            shutil.rmtree(result_path)
+        os.mkdir(result_path)
     except OSError, e:
         tool.log(LOG_TAG, "create folder { %s } failed, reason: { %s }" % (result_path, e.message))
         return False
 
+    result_links = {}
+
     # 判断并创建exceptions
     if num_exception > 0:
-        generate_fatal_exception()
+        exception_link = generate_fatal_exception(result_path, data=data)
+        result_links[__M_JAVA__] = exception_link
 
     # 判断并创建signals
     if num_signal > 0:
-        generate_fatal_signal()
+        signal_link = generate_fatal_signal(result_path, data=data)
+        result_links[__M_NATIVE__] = signal_link
 
-    # 创建overview
-    # .1 创建overview_data.js
-    create_overview_data()
-
-    # .2 创建overview.html
-    create_overview(result_path)
+    overview_path = ''
+    if len(result_links) > 0:
+        # 创建overview
+        # .1 创建overview_data.js
+        create_overview_data(result_path, data=data, result_links=result_links)
+        # .2 创建overview.html
+        overview_path = create_overview(result_path)
+    return overview_path
 
 
 def generate_fatal_exception(folder, data):
@@ -143,30 +79,181 @@ def generate_fatal_exception(folder, data):
     :param folder 指定的结果存放目录
     :param data: 存储着fatal exception的数据
     """
+    exception_folder = folder + "/exceptions"
 
-    # 1、路径
-    exception_file = "fatal_exception.html"
+    try:
+        os.mkdir(exception_folder)
+    except OSError, e:
+        tool.log(LOG_TAG, "create folder { %s } failed, reason: { %s }" % (exception_folder, e.message))
+        return False
 
-    # 2、copy图片到指定路径
+    css_file = exception_folder + '/exception.css'
+    css = open(css_file, 'w')
+    css.write(html_page_strings.exception_page_css)
+    css.close()
 
-    # 3、copy css文件到指定路径
+    html_file = exception_folder + '/exception.html'
+    f = open(html_file, 'w')
 
-    # 4、创建html文件
-    pass
+    # --------------------------------------
+
+    title = html_page_strings.exception_page_html_head
+    style = "exception.css"
+    web_server = "../js/websocket.js"
+    error_type = "Fatal Exception"
+    log_path = "/home/qinsw/downloads/android/log"
+    page_title = "%s in %s" % (error_type, log_path)
+
+    f.write(title.format(
+        page_title=page_title,
+        page_icon=html_images.icon,
+        style=style,
+        webserver=web_server,
+        logo=html_images.logo,
+        error_type=error_type,
+        log_path=log_path,
+        create_time=tool.get_format_time()
+    ) + '\n')
+
+    # --------------------------------------
+
+    # _data = data
+    exceptions_data = data[__M_JAVA__]
+
+    # Exception的Summary数据
+    exceptions_summary_data = []
+    for i, r in enumerate(exceptions_data):
+        # 单行数据为： 包名+原因， 次数， 第一次时间
+        s_row = [HTML.link('%s - [%s]' % (r.name_package, r.reason), '#%d' % i),
+                 len(r.base_info_set),
+                 r.base_info_set[0].occurred_time
+                 ]
+        exceptions_summary_data.append(s_row)
+
+    page_summary = HTML.table(exceptions_summary_data,
+                              header_row=['Exception', 'Count', 'First Occurred time'],
+                              attribs={"class": "summary"},
+                              col_width=['', '10%', '20%'],
+                              col_align=['left', 'center', 'center'],
+                              col_styles=['font-size: medium', '', '']
+                              )
+
+    f.write(page_summary + '<p>\n')
+
+    for i, r in enumerate(exceptions_data):
+        # 留空白
+        f.write('<br>\n' * 60)
+
+        # 每个结果的包名，原因和堆栈
+        stack_trace = ""
+        for st in r.stack_trace:
+            stack_trace += (st + "<br/>")
+        # print stack_trace
+        content_title_data = [
+            [  # 包名
+                r.name_package,
+                # 原因
+                r.reason,
+                # 堆栈
+                str(stack_trace)
+            ]
+        ]
+
+        page_content_title = HTML.table(content_title_data,
+                                        header_row=['Package', 'Reason', 'StackTrace'],
+                                        width=1180,
+                                        attribs={"class": "detailTitle", "id": "%d" % i},
+                                        col_width=['', '30%', '60%'],
+                                        col_align=['center', 'left', 'left'],
+                                        # col_styles=['font-size: large', 'font-size: medium', '']
+                                        )
+        f.write(page_content_title + '<p>\n')
+
+        # 对应重复的详细数据： pid， 发生时间，在log中的位置
+        base_info_set = []
+        for bi in r.base_info_set:
+            base_info_set.append([bi.p_t_id,
+                                  bi.occurred_time,
+                                  "%s(line:%s)" % (bi.location_in_log.log_file_path, bi.location_in_log.found_line)
+                                  ])
+
+        page_content_details = HTML.table(base_info_set,
+                                          header_row=['PID', 'Occurred Time', 'Adb Log'],
+                                          width=1180,
+                                          attribs={"class": "detailContent"},
+                                          col_width=['10%', '30%', '60%'],
+                                          col_align=['center', 'center', 'center'],
+                                          col_styles=['font-size: large', '', '']
+                                          )
+        f.write(page_content_details + '<p>\n')
+    f.close()
+    return html_file
 
 
 def generate_fatal_signal(task, data):
-    pass
+    return ""
 
 
-def create_overview_data(folder, data):
+def create_overview_data(folder, data, result_links):
     """
     在js文件夹下创建overview_data.js
     :param folder: 目录
     :param data:
     :return:
     """
-    pass
+    data_folder = folder + "/js"
+
+    try:
+        os.mkdir(data_folder)
+    except OSError, e:
+        tool.log(LOG_TAG, "create folder { %s } failed, reason: { %s }" % (data_folder, e.message))
+        return False
+
+    third_party_exporting = open(data_folder + '/exporting.js', 'w')
+    print html_page_strings.exporting_js
+    third_party_exporting.write(html_page_strings.exporting_js)
+    third_party_exporting.close()
+
+    third_party_highcharts = open(data_folder + "/highcharts.js", 'w')
+    # print html_page_strings.highcharts_js
+    third_party_highcharts.write(html_page_strings.highcharts_js)
+    third_party_highcharts.close()
+
+    overview_data = {
+        "head_title": "ALAT in %s" % folder,
+        "chart_title": tool.get_format_time(),
+        "chart_data": [],
+    }
+
+    for key in data.keys():
+        print key
+        if len(data[key]) > 0:
+            module_data = {
+                "name": key,
+                # y代表的是数量
+                "y": 0,
+                "link": result_links[key]
+            }
+
+            y = 0
+            for r in data[key]:
+                y += len(r.base_info_set)
+
+            module_data["y"] = y
+            overview_data["chart_data"].append(module_data)
+
+    # TODO Delete soon for test
+    overview_data["chart_data"].append({
+                "name": __M_NATIVE__,
+                # y代表的是数量
+                "y": 100,
+                "link": ''
+            })
+
+    od = open(data_folder + "/overview_data.js", 'w')
+    od.write("var Overview = ")
+    od.write(json.dumps(overview_data, indent=2, sort_keys=True))
+    od.close()
 
 
 def create_overview(folder):
@@ -174,82 +261,14 @@ def create_overview(folder):
     根据主目录路径创建Overview网页文件
     :param folder:
     """
-    overview_content = """
-<!DOCTYPE HTML>
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title id="head_title"></title>
-    <style type="text/css"></style>
-    <link rel='icon'
-          href='data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABiElEQVQ4T6VTQVLCQBDsWVG8GfiAWmVyFV4gvAB/IFfJQXiB4QXAIXjFH8gLwB/knFglfgDiTRB3rE3Y1EbAKss9ZWene7pnJoR/HtqFt3qvFopfDUF8pt4l0wzLg3HcOY9/5ucIFFAU1/cA2nuE9eWy0DWJMgIFpqPPCRFVFJiBdwJOtr6ZA14d1jVJRlAaRlMCrrLKTAMp+EndhaRrEN/pNwami5ZdV/eEwHqIaoIxyRIYYxaFNj4Q4xhWkijXfSI0dI4k1ONbWxUFysNwBNDNRu5zAmBMzT4woQawRaDLNM6P85bTTAhKfjQjwqn6nrdsKvuRN3dtzyTQsfIw4gTOHCxcp7pRkAb/QqBzUwXDMNDSflMgV4W+KK4X2uqiZde2epDaQ3eXBRDUjmyO0YMdU4gZ3DF7QKAeUToRdSRzNXadINuDsv/SN2etVJgEuepMg7l7kWxrbpXNcebAuUsqXYe2fibLD5sE8vRYM8eMNwZ7seuM8tb2lLL8sAJBqWfJsfK7K/Ub4DK+EaJT/6MAAAAASUVORK5CYII='
-          type=‘image/x-ico’/>
-</head>
-<body>
-<script src="js/highcharts.js"></script>
-<script src="js/exporting.js"></script>
-<script src="js/overview_data.js"></script>
-<div id="container"
-     style="min-width: 800px; min-height: 450px; max-width: 1366px; max-height: 768px; marginTop: 100 auto">
-</div>
-<script type="text/javascript">
-var head_title=document.getElementById("head_title");
-head_title.innerHTML = Overview.head_title
-var pieChart = Highcharts.chart('container', {
-    chart: {
-        plotBackgroundColor: null,
-        plotBorderWidth: null,
-        plotShadow: false,
-        type: 'pie'
-    },
-    tooltip: {
-        pointFormat: '{series.name}: <b>{point.y}</b>'
-    },
-    plotOptions: {
-        pie: {
-            allowPointSelect: true,
-            cursor: 'pointer',
-            dataLabels: {
-                enabled: true,
-                format: '<b>{point.name}</b>: {point.y}',
-                style: {
-                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
-                }
-            }
-        }
-    },
-    colors: ['#ff5722', '#3f51b5', '#f15c80', '#00bcd4', '#009688', '#607d8b'],
-    credits:{
-    enabled: false  // 禁用版权信息
-    }
-});
-pieChart.title.update({ text: Overview.chart_title })
-var series1 = { name: 'Overview', colorByPoint: true, data: [] }
-for(var i = 0; i < Overview.chart_data.length; i++) {
-    var node = {}
-    node['name'] = Overview.chart_data[i].name
-    node['y'] = Overview.chart_data[i].y
-    node['link'] = Overview.chart_data[i].link
-    node['events'] = {
-        click: function(event) {
-            window.open(Overview.chart_data[this.index].link)
-        }
-    }
-    if (i == 0) {
-        node['sliced'] = true
-        node['selected'] = true
-    }
-    series1.data.push(node)
-}
-pieChart.addSeries(series1)
-</script>
-</body>
-</html>
-"""
+    overview_content = html_page_strings.overview_html.format(
+        icon=html_images.icon,
+        logo=html_images.logo,
+        script=html_page_strings.overview_script
+    )
+
     overview_path = folder + "/" + "overview.html"
     overview = open(overview_path, "w")
     overview.write(overview_content)
     overview.close()
-
-
+    return overview_path

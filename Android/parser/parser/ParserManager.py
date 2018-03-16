@@ -1,14 +1,12 @@
 # coding=utf-8
 import threading
 import threadpool
-
 from Queue import Queue
 
+import html.gen.generator as gen
 from parser.Parser import *
 from parser.Parser import __M_ANR__, __M_JAVA__, __M_NATIVE__
-import tool.tools as tool
 from task.task import Task
-
 
 LOG_TAG = "ParserManager"
 
@@ -36,6 +34,8 @@ class ParserManager(object):
         self.task = task
         # 表明处理状态， True正在处理， False完成处理或其他情况
         self.running = True
+
+        #self.count_down_timer = threading.Timer(5, self.no_response_timer)
 
         # 用于线程间通信以反馈解析进度的通信队列
         self.com_queue = Queue(maxsize=task.getLoad())
@@ -104,6 +104,9 @@ class ParserManager(object):
             task_list.append(l_tmp)
 
         # 生成多线程任务
+
+        #self.count_down_timer.start()
+
         reqs = threadpool.makeRequests(self._execute, task_list, callback=self._callback)
         [self.pool.putRequest(req) for req in reqs]
 
@@ -145,6 +148,10 @@ class ParserManager(object):
             data = self.com_queue.get()
             # print data
 
+            #self.count_down_timer.cancel()
+            #self.count_down_timer = threading.Timer(5, self.no_response_timer)
+            #self.count_down_timer.start()
+
             if data["mode"] == 0:
                 # 生成完成
                 self.task.state = data["state"]
@@ -163,7 +170,13 @@ class ParserManager(object):
                 # 所有文件进度之和 = sum(self.percent_files.values())
                 # 所有文件总个数 = len(self.file_path_list)或len(self.task.files)
                 # 进度 = 所有文件进度之和 / 所有文件总个数
+                #print "len(self.file_path_list) = %d" % len(self.file_path_list)
+                #print "float sum = %d " % sum(self.percent_files.values())
                 self.percent = int((float(sum(self.percent_files.values())) / len(self.file_path_list)) * 100)
+                #tool.log(LOG_TAG, "percent = %d " % self.percent)
+                #if sum(self.percent_files.values()) == 971:
+                #    print "\n\n\n\n\n\n\n"
+                #    print self.percent_files.keys()
 
                 # 调用 self.pool 的wait方法，迫使线程调用callback
                 if self.percent >= 100:
@@ -183,6 +196,8 @@ class ParserManager(object):
         """
 
         self.files_done += 1
+
+        tool.log(LOG_TAG, "%d files is done, ALL is %d" % (self.files_done, len(self.task.files)))
 
         # 将文件的结果汇总
         try:
@@ -218,17 +233,16 @@ class ParserManager(object):
         """ 结果生成线程的执行代码段
             :param result: 经过Parser内部去重和ParserManager外部去重后的结果
         """
-
+        tool.log(LOG_TAG, "Generating...")
         # 通知状态变化：正在生成
         self.com_queue.put({"mode": 0, "state": Task.__STATE_GENERATING__})
 
-        # TODO 未完成
-        print result
-        print "Generating..."
-        import html.test.yiyiyi as yiyi
-        yiyi.gen(None, data=result)
-        print "Generated"
-        #time.sleep(2)
+        self.task.result_path = gen.generate_results(self.task, result)
+
+        tool.log(LOG_TAG, "Generated Successfully")
 
         # 通知状态变化：任务完成
         self.com_queue.put({"mode": 0, "state": Task.__STATE_DONE__})
+
+    def no_response_timer(self):
+        self.pool.wait()

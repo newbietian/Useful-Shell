@@ -5,6 +5,6 @@ import webbrowser
 
 sys.path.append("libs")
 
-url = 'https://www.baidu.com'
+url = '/home/pt/Downloads/android.alar/exceptions/exception.html'
 webbrowser.open(url)
 print webbrowser.get()

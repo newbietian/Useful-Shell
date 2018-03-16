@@ -1,6 +1,6 @@
 var Overview = {
   "head_title":"Android Log Analysis Tool",
-  "chart_title": "Pengtian Chart 2015",
+  "chart_title": "2018-03-15 19:24:36",
   "chart_data": [
     {
       "name": "Java Crash",

@@ -548,13 +548,15 @@ class UlcTaskDoneList(wx.Panel):
             hyper_scan_col.SetHyperText()
             hyper_scan_col.SetText("浏览")
             hyper_scan_col.SetBackgroundColour(colour)
+            hyper_scan_col.SetPyData(task)
             self.ulc.SetItem(hyper_scan_col)
 
-            hyper_open_col = self.ulc.GetItem(0, 3)
-            hyper_open_col.SetHyperText()
-            hyper_open_col.SetText("打开")
-            hyper_open_col.SetBackgroundColour(colour)
-            self.ulc.SetItem(hyper_open_col)
+            # hyper_open_col = self.ulc.GetItem(0, 3)
+            # hyper_open_col.SetHyperText()
+            # hyper_open_col.SetText("打开")
+            # hyper_open_col.SetBackgroundColour(colour)
+            # hyper_open_col.SetPyData(task)
+            # self.ulc.SetItem(hyper_open_col)
 
         if task.state == Task.__STATE_FAILED__:
             hyper_scan_col = self.ulc.GetItem(0, 2)
@@ -582,21 +584,18 @@ class UlcTaskDoneList(wx.Panel):
         if self.ulc.GetPyData(self.currentIndex):
             print ("PYDATA = %s\n" % repr(self.ulc.GetPyData(self.currentIndex)))
 
-        event.Skip()
+        # event.Skip()
 
     def OnHyperTextClicked(self, event):
+        # event see CommandListEvent in ULC
+        # 存在一个问题， 同一列有两个超链接时，没有信息来分辨是点击了哪个超链接
         print "You click a hypertext"
         self.currentIndex = event.m_itemIndex
-        item = self.ulc.GetItem(self.currentIndex, 1)
-        if item.GetPyData():
-            print ("PYDATA = %s\n" % repr(item.GetPyData()))
+        hyper_item = self.ulc.GetItem(event.m_itemIndex, 2)
 
-        allcount = self.ulc.GetItemCount()
-        print allcount
-
-        self.ulc.InsertImageStringItem(allcount,
-                                       "/home/qinsw/pengtian/tmp/cmcc_monkey/asrlog-0037(1122)/asrlog-2017-11-21-17-06-29/1/android",
-                                       0)
+        if hyper_item.GetPyData():
+            print ("PYDATA = %s\n" % repr(hyper_item.GetPyData()))
+            tool.open_browser(hyper_item.GetPyData().result_path)
 
         event.Skip()
 
@@ -620,7 +619,7 @@ class UlcTaskDoneList(wx.Panel):
         self.ulc.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
         self.Bind(ULC.EVT_LIST_ITEM_HYPERLINK, self.OnHyperTextClicked, self.ulc)
-        self.Bind(ULC.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.ulc)
+        # self.Bind(ULC.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.ulc)
 
         # 参考资料
         # http://xoomer.virgilio.it/infinity77/Phoenix/lib.agw.ultimatelistctrl.UltimateListItem.html#lib.agw.ultimatelistctrl.UltimateListItem
@@ -642,7 +641,8 @@ class UlcTaskDoneList(wx.Panel):
         # mask可以出现哪些形式的
         log_path_item._mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT \
                               | ULC.ULC_MASK_BACKCOLOUR \
-                              | ULC.ULC_MASK_FONTCOLOUR
+                              | ULC.ULC_MASK_FONTCOLOUR \
+                              | ULC.ULC_MASK_PYDATA
         log_path_item._format = ULC.ULC_FORMAT_LEFT
         log_path_item._text = LANG.log_path
         self.ulc.InsertColumnInfo(1, log_path_item)
@@ -652,21 +652,22 @@ class UlcTaskDoneList(wx.Panel):
         op._mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT \
                    | ULC.ULC_MASK_HYPERTEXT \
                    | ULC.ULC_MASK_BACKCOLOUR \
-                   | ULC.ULC_MASK_FONTCOLOUR
+                   | ULC.ULC_MASK_FONTCOLOUR \
+                   | ULC.ULC_MASK_PYDATA
         self.ulc.InsertColumnInfo(2, op)
 
-        op = ULC.UltimateListItem()
-        op._format = ULC.ULC_FORMAT_LEFT
-        op._mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT \
-                   | ULC.ULC_MASK_HYPERTEXT \
-                   | ULC.ULC_MASK_BACKCOLOUR \
-                   | ULC.ULC_MASK_FONTCOLOUR
-        self.ulc.InsertColumnInfo(3, op)
+        # op = ULC.UltimateListItem()
+        # op._format = ULC.ULC_FORMAT_LEFT
+        # op._mask = wx.LIST_MASK_TEXT | wx.LIST_MASK_IMAGE | wx.LIST_MASK_FORMAT \
+        #            | ULC.ULC_MASK_HYPERTEXT \
+        #            | ULC.ULC_MASK_BACKCOLOUR \
+        #            | ULC.ULC_MASK_FONTCOLOUR
+        # self.ulc.InsertColumnInfo(3, op)
 
         self.ulc.SetColumnWidth(0, 150)
-        self.ulc.SetColumnWidth(1, 500)
+        self.ulc.SetColumnWidth(1, 550)
         self.ulc.SetColumnWidth(2, 100)
-        self.ulc.SetColumnWidth(3, 50)
+        #self.ulc.SetColumnWidth(3, 50)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.ulc, 1, flag=wx.EXPAND)

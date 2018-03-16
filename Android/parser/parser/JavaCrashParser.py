@@ -56,6 +56,7 @@ class JavaCrashParser(object):
         self.start_line = start_line
         self.result = JavaCrash()
 
+        self.has_get_reason = False
         self.has_caused_by = False
 
     def parse(self):
@@ -98,7 +99,8 @@ class JavaCrashParser(object):
                     continue
 
                 reason_matcher = re.match(self.PAT_REASON, line)
-                if reason_matcher:
+                if reason_matcher and not self.has_get_reason:
+                    self.has_get_reason = True
                     self.result.reason = reason_matcher.group()
                     self.result.stack_trace.append(line)
                     continue
@@ -137,7 +139,7 @@ class JavaCrashParser(object):
                     self.logfp.rollbackline(-(len(line) + header_len))
                     break
         except Exception as e:
-            echo("@@@@@@@@@@@ has Exception : " + e.message)
+            echo("@@@@@@@@@@@ has Exception : " + e.message + self.logfp.__dict__)
         finally:
             self.result.base_info_set.append(self.result.base_info)
             return self.result
